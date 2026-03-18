@@ -1,0 +1,69 @@
+#!/usr/bin/env zsh
+# dsync-up — copy live configs INTO the dotfiles repo
+# Usage: dsync-up [--dry-run]
+
+set -euo pipefail
+
+REPO_DIR="${DOTFILES_DIR:-$HOME/Documents/DotFiles}"
+DRY_RUN=0
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+
+# ── Config map ────────────────────────────────────────────────────────────────
+# Format: "LIVE_PATH|REPO_RELATIVE_PATH|type"   type = file | dir
+typeset -a CONFIG_MAP=(
+  "$HOME/.zshrc|configs/zsh/.zshrc|file"
+  "$HOME/Library/Application Support/com.mitchellh.ghostty/config|configs/ghostty/config|file"
+  "$HOME/.config/nvim|configs/nvim|dir"
+  "$HOME/.config/starship.toml|configs/starship/starship.toml|file"
+  "$HOME/.config/fsh|configs/fsh|dir"
+)
+# ──────────────────────────────────────────────────────────────────────────────
+
+RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
+
+echo "\n${CYAN}═══ dsync-up ═══════════════════════════════════════${RESET}"
+[[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN — nothing will be written${RESET}\n"
+
+changes=0
+
+for entry in "${CONFIG_MAP[@]}"; do
+  local_src="${entry%%|*}"
+  rest="${entry#*|}"
+  repo_rel="${rest%%|*}"
+  kind="${rest##*|}"
+  repo_dst="$REPO_DIR/$repo_rel"
+
+  if [[ ! -e "$local_src" ]]; then
+    echo "  ${YELLOW}⚠${RESET}  Not found, skipping: $local_src"
+    continue
+  fi
+
+  if [[ $kind == "dir" ]]; then
+    if [[ $DRY_RUN -eq 1 ]]; then
+      echo "  ${CYAN}~${RESET}  [dry-run] rsync $local_src/ → $repo_dst/"
+    else
+      mkdir -p "$repo_dst"
+      rsync -a --delete "$local_src/" "$repo_dst/"
+      echo "  ${GREEN}✔${RESET}  Synced dir:  $local_src → $repo_dst"
+    fi
+  else
+    if [[ $DRY_RUN -eq 1 ]]; then
+      echo "  ${CYAN}~${RESET}  [dry-run] cp $local_src → $repo_dst"
+    else
+      mkdir -p "$(dirname "$repo_dst")"
+      cp "$local_src" "$repo_dst"
+      echo "  ${GREEN}✔${RESET}  Copied file: $local_src → $repo_dst"
+    fi
+  fi
+  ((changes++))
+done
+
+echo ""
+if [[ $DRY_RUN -eq 0 ]]; then
+  echo "  ${GREEN}Done.${RESET} $changes item(s) synced into repo."
+  echo "  Review:  cd $REPO_DIR && git diff"
+  echo "  Commit:  git add -A && git commit -m 'update configs'"
+else
+  echo "  ${CYAN}Dry run complete.${RESET} $changes item(s) would be synced."
+fi
+echo ""
