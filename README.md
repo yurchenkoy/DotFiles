@@ -30,6 +30,12 @@ brew bundle install
 
 # 5. Apply configs
 dsync-down
+# 6. Give permisisons 
+chmod go-w "$(brew --prefix)/share/zsh-completions"
+chmod go-w "$(brew --prefix)/share"
+
+#7. Update theme (optional)
+fast-theme ~/.config/fsh/tokyodark.ini
 ```
 
 ## Daily workflow
