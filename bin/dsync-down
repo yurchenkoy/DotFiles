@@ -2,8 +2,6 @@
 # dsync-down — copy configs FROM the dotfiles repo into live locations
 # Usage: dsync-down [--dry-run] [--force]
 
-set -euo pipefail
-
 REPO_DIR="${DOTFILES_DIR:-$HOME/Documents/DotFiles}"
 DRY_RUN=0
 FORCE=0
@@ -13,15 +11,37 @@ for arg in "$@"; do
 done
 
 # ── Config map ────────────────────────────────────────────────────────────────
-# Format: "REPO_RELATIVE_PATH|LIVE_PATH|type"   type = file | dir
-typeset -a CONFIG_MAP=(
-  "configs/zsh/.zshrc|$HOME/.zshrc|file"
-  "configs/ghostty/config|$HOME/Library/Application Support/com.mitchellh.ghostty/config|file"
-  "configs/nvim|$HOME/.config/nvim|dir"
-  "configs/starship/starship.toml|$HOME/.config/starship.toml|file"
-  "configs/fsh|$HOME/.config/fsh|dir"
-  "configs/alfred/Alfred.alfredpreferences|$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences|dir"
-  "configs/git/.gitconfig|$HOME/.gitconfig|file"
+# Add new entries as a matching triplet across all three arrays.
+# type = file | dir
+
+typeset -a SOURCES=(
+  "configs/zsh/.zshrc"
+  "configs/ghostty/config"
+  "configs/nvim"
+  "configs/starship/starship.toml"
+  "configs/fsh"
+  "configs/alfred/Alfred.alfredpreferences"
+  "configs/git/.gitconfig"
+)
+
+typeset -a DESTINATIONS=(
+  "$HOME/.zshrc"
+  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+  "$HOME/.config/nvim"
+  "$HOME/.config/starship.toml"
+  "$HOME/.config/fsh"
+  "$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
+  "$HOME/.gitconfig"
+)
+
+typeset -a TYPES=(
+  "file"
+  "file"
+  "dir"
+  "file"
+  "dir"
+  "dir"
+  "file"
 )
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -44,12 +64,10 @@ fi
 echo "  ${CYAN}Previewing what would change on this machine:${RESET}\n"
 diff_found=0
 
-for entry in "${CONFIG_MAP[@]}"; do
-  repo_rel="${entry%%|*}"
-  rest="${entry#*|}"
-  live_dst="${rest%%|*}"
-  kind="${rest##*|}"
-  repo_src="$REPO_DIR/$repo_rel"
+for i in {1..${#SOURCES[@]}}; do
+  repo_src="$REPO_DIR/${SOURCES[$i]}"
+  live_dst="${DESTINATIONS[$i]}"
+  kind="${TYPES[$i]}"
 
   if [[ ! -e "$repo_src" ]]; then
     echo "  ${YELLOW}⚠${RESET}  Not in repo, skipping: $repo_src"
@@ -102,12 +120,10 @@ fi
 
 # ── Apply ─────────────────────────────────────────────────────────────────────
 changes=0
-for entry in "${CONFIG_MAP[@]}"; do
-  repo_rel="${entry%%|*}"
-  rest="${entry#*|}"
-  live_dst="${rest%%|*}"
-  kind="${rest##*|}"
-  repo_src="$REPO_DIR/$repo_rel"
+for i in {1..${#SOURCES[@]}}; do
+  repo_src="$REPO_DIR/${SOURCES[$i]}"
+  live_dst="${DESTINATIONS[$i]}"
+  kind="${TYPES[$i]}"
 
   [[ ! -e "$repo_src" ]] && continue
 

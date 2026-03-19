@@ -2,22 +2,42 @@
 # dsync-up — copy live configs INTO the dotfiles repo
 # Usage: dsync-up [--dry-run]
 
-set -euo pipefail
-
 REPO_DIR="${DOTFILES_DIR:-$HOME/Documents/DotFiles}"
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
 # ── Config map ────────────────────────────────────────────────────────────────
-# Format: "LIVE_PATH|REPO_RELATIVE_PATH|type"   type = file | dir
-typeset -a CONFIG_MAP=(
-  "$HOME/.zshrc|configs/zsh/.zshrc|file"
-  "$HOME/Library/Application Support/com.mitchellh.ghostty/config|configs/ghostty/config|file"
-  "$HOME/.config/nvim|configs/nvim|dir"
-  "$HOME/.config/starship.toml|configs/starship/starship.toml|file"
-  "$HOME/.config/fsh|configs/fsh|dir"
-  "$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences|configs/alfred/Alfred.alfredpreferences|dir"
-  "$HOME/.gitconfig|configs/git/.gitconfig|file"
+# Add new entries as a matching triplet across all three arrays.
+# type = file | dir
+
+typeset -a SOURCES=(
+  "$HOME/.zshrc"
+  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+  "$HOME/.config/nvim"
+  "$HOME/.config/starship.toml"
+  "$HOME/.config/fsh"
+  "$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
+  "$HOME/.gitconfig"
+)
+
+typeset -a DESTINATIONS=(
+  "configs/zsh/.zshrc"
+  "configs/ghostty/config"
+  "configs/nvim"
+  "configs/starship/starship.toml"
+  "configs/fsh"
+  "configs/alfred/Alfred.alfredpreferences"
+  "configs/git/.gitconfig"
+)
+
+typeset -a TYPES=(
+  "file"
+  "file"
+  "dir"
+  "file"
+  "dir"
+  "dir"
+  "file"
 )
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -28,12 +48,10 @@ echo "\n${CYAN}═══ dsync-up ═══════════════�
 
 changes=0
 
-for entry in "${CONFIG_MAP[@]}"; do
-  local_src="${entry%%|*}"
-  rest="${entry#*|}"
-  repo_rel="${rest%%|*}"
-  kind="${rest##*|}"
-  repo_dst="$REPO_DIR/$repo_rel"
+for i in {1..${#SOURCES[@]}}; do
+  local_src="${SOURCES[$i]}"
+  repo_dst="$REPO_DIR/${DESTINATIONS[$i]}"
+  kind="${TYPES[$i]}"
 
   if [[ ! -e "$local_src" ]]; then
     echo "  ${YELLOW}⚠${RESET}  Not found, skipping: $local_src"

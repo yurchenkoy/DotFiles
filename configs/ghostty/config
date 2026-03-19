@@ -1,0 +1,28 @@
+# ---- Title +  ----
+title = "terminal"
+macos-titlebar-proxy-icon = hidden
+macos-titlebar-style = tabs
+shell-integration-features = no-cursor
+cursor-style = block_hollow
+cursor-style-blink = true
+
+
+# ---- Font ----
+#font-family = "CaskaydiaCove Nerd Font Mono"
+#font-family = "Menlo"
+#font-family = "Monaco"
+#font-family = "Courier New"
+font-family = "JetBrainsMonoNL Nerd Font Mono"
+font-size = 11
+
+
+# ---- Theme ----
+theme = "TokyoNight Storm"
+
+# ----  Opacity ----
+background-opacity = 0.98
+
+# ---- Keybindings ----
+keybind = global:alt+space=new_window
+keybind = super+shift+w=unbind
+keybind = super+s=new_split:down

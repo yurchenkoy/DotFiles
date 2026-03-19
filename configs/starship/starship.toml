@@ -1,0 +1,74 @@
+# Minimal Starship config
+# Adds time at start and removes runtime/language modules
+
+format = """
+$time\
+$directory\
+$git_branch\
+$git_status
+$python$character
+"""
+
+# --- Time (new, at beginning) ---
+[time]
+disabled = false
+format = "[$time]($style) "
+style = "dimmed"
+
+# --- Directory ---
+[directory]
+style = "fg:#BB9AF7"
+format = "[$path]($style) "
+
+# --- Git branch ---
+[git_branch]
+style = "fg:#36C0C0"
+format = "[$symbol$branch]($style) "
+symbol = ""
+
+# --- Git status ---
+[git_status]
+style = "fg:#E5C07B"
+format = '([$all_status$ahead_behind]($style) )'
+
+[character]
+success_symbol = "[❯](fg:#7AA2F7)"
+error_symbol = "[❯](fg:#7AA2F7)"
+
+# --- Disable language/runtime modules ---
+[dotnet]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[python]
+disabled = false
+format = "[(\\($virtualenv\\) )]($style)"
+
+[rust]
+disabled = true
+
+[golang]
+disabled = true
+
+[java]
+disabled = true
+
+[php]
+disabled = true
+
+[ruby]
+disabled = true
+
+[haskell]
+disabled = true
+
+[kotlin]
+disabled = true
+
+[swift]
+disabled = true
+
+[terraform]
+disabled = true
