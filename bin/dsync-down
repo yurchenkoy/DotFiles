@@ -20,6 +20,8 @@ typeset -a CONFIG_MAP=(
   "configs/nvim|$HOME/.config/nvim|dir"
   "configs/starship/starship.toml|$HOME/.config/starship.toml|file"
   "configs/fsh|$HOME/.config/fsh|dir"
+  "configs/alfred/Alfred.alfredpreferences|$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences|dir"
+  "configs/git/.gitconfig|$HOME/.gitconfig|file"
 )
 # ──────────────────────────────────────────────────────────────────────────────
 
