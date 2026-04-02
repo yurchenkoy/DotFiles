@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+# deploy-datahub — trigger the DataHub deployment workflow
+# Usage: deploy-datahub
+
+set -euo pipefail
+
+current_branch=$(git branch --show-current)
+
+if [[ "$current_branch" != "deployment" ]]; then
+  echo "You are on '$current_branch'. Switch to deployment before deploying!"
+  exit 1
+fi
+
+echo "!!! SYNC the DB !!!"
+read "reply?Continue? (y/n)"
+if [[ "$reply" != "y" ]]; then
+  echo "Cancelled."
+  exit 0
+fi
+
+if gh workflow run deploy.yml --ref deployment; then
+  echo "Deployment triggered."
+else
+  echo "Something failed."
+  exit 1
+fi

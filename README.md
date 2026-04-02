@@ -19,7 +19,7 @@ Personal dotfiles for macOS. Managed with two simple scripts.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # 2. Clone the repo
-git clone <your-repo-url> ~/Documents/DotFiles
+git clone <https://github.com/yurchenkoy/DotFiles> ~/Documents/DotFiles
 
 # 3. Run init (makes scripts executable + symlinks them to ~/.local/bin)
 cd ~/Documents/DotFiles

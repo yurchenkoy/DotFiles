@@ -1,7 +1,10 @@
+export EDITOR="/opt/homebrew/bin/nvim"
+export VISUAL="nvim"
+
 # --- Python related ---
-alias python='python3'
+alias python='python3.11'
 export PATH="$HOME/.local/bin:$PATH"
-WORK_VENVS="$HOME/Documents/Work/PythonEnvs"
+WORK_VENVS="$HOME/Documents/PythonEnvs"
 
 activate() {
   if [ -z "$1" ]; then
@@ -23,31 +26,6 @@ activate() {
 
 # --- Aliases ---
 alias ls='eza'
-
-# --- Shell Functions
-deploy-datahub() {
-  local current_branch=$(git branch --show-current)
-
-  if [[ "$current_branch" != "deployment" ]]; then
-    echo "You are on '$current_branch'. Switch to deployment before deploying!"
-    return 1
-  fi
-
-  echo "!!! SYNC the DB !!!"
-  read "reply?Continue? (y/n)"
-  if [[ "$reply" != "y" ]]; then
-    echo "Cancelled."
-    return
-  fi
-
-  gh workflow run deploy.yml --ref deployment
-
-  if [[ $? -eq 0 ]]; then
-    echo "Deployment triggered."
-  else
-    echo "Something failed."
-  fi
-}
 
 # --- Initialize Completions ---
 if type brew &>/dev/null; then

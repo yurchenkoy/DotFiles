@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string></string>
+	<key>connections</key>
+	<dict>
+		<key>85B908AC-71D5-463F-AAEA-FEE70733FC56</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>D421D643-0BB6-4B0D-B800-B12DF1519855</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>D421D643-0BB6-4B0D-B800-B12DF1519855</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>7656F3F6-C648-49F0-8F69-2DCCA4C3C3D6</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string></string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Command CheatSheet</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>cat &lt;&lt; 'EOF'  
+
+.                            |
+                             |                 
+                             |                 
+                           .-'-.              
+                          ' ___ '
+                ---------'  .-.  '---------
+_________________________'  '-'  '_________________________
+ ''''''-|---|--/    \==][^',_m_,'^][==/    \--|---|-''''''
+               \    /  ||/   H   \||  \    /
+                '--'   OO   O|O   OO   '--'
+
+
+ ╔═══════════════════════════╤═══════════════════════════╗
+ ║ FOCUS                     │ MOVE WINDOW               ║
+ ║ Caps H      : focus ←     │ Caps Cmd H  : move ←      ║
+ ║ Caps J      : focus ↓     │ Caps Cmd J  : move ↓      ║
+ ║ Caps K      : focus ↑     │ Caps Cmd K  : move ↑      ║
+ ║ Caps L      : focus →     │ Caps Cmd L  : move →      ║
+ ╟───────────────────────────┼───────────────────────────╢
+ ║ WORKSPACES                │ SEND TO WORKSPACE         ║
+ ║ Caps 1-9    : switch ws   │ Caps Cmd 1-9 : send win   ║
+ ╟───────────────────────────┴───────────────────────────╢
+ ║ LAYOUT &amp; RESIZE                                       ║
+ ║ Caps /      : tiles h/v       Caps F  : fullscreen    ║
+ ║ Caps ,      : accordion       Caps ␣  : float toggle  ║
+ ║ Caps -      : shrink          Caps =  : grow          ║
+ ╟───────────────────────────────────────────────────────╢
+ ║ OTHER                                                 ║
+ ║ Caps ⇥      : last ws         Caps `  : next monitor  ║
+ ║ Caps ↵      : open Ghostty                            ║
+ ╟───────────────────────────┬───────────────────────────╢
+ ║ RESIZE MODE   Caps R      │ SERVICE MODE   Caps ;     ║
+ ╟───────────────────────────┼───────────────────────────╢
+ ║ H           : shrink w    │ Esc  : reload config      ║
+ ║ L           : grow w      │ R    : reset layout       ║
+ ║ K           : shrink h    │ F    : float toggle       ║
+ ║ J           : grow h      │ ⌫    : close others       ║
+ ║ Esc         : exit        │ HJKL : join direction     ║
+ ╚═══════════════════════════╧═══════════════════════════╝
+EOF</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>11</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>D421D643-0BB6-4B0D-B800-B12DF1519855</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alignment</key>
+				<integer>0</integer>
+				<key>backgroundcolor</key>
+				<string>#BEBEBEDE</string>
+				<key>fadespeed</key>
+				<integer>0</integer>
+				<key>fillmode</key>
+				<integer>0</integer>
+				<key>font</key>
+				<string>CaskaydiaCove NFM Regular</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>largetypetext</key>
+				<string>{query}</string>
+				<key>textcolor</key>
+				<string>#000000FF</string>
+				<key>wrapat</key>
+				<integer>400</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.largetype</string>
+			<key>uid</key>
+			<string>7656F3F6-C648-49F0-8F69-2DCCA4C3C3D6</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>action</key>
+				<integer>0</integer>
+				<key>argument</key>
+				<integer>0</integer>
+				<key>focusedappvariable</key>
+				<false/>
+				<key>focusedappvariablename</key>
+				<string></string>
+				<key>hotkey</key>
+				<integer>8</integer>
+				<key>hotmod</key>
+				<integer>917504</integer>
+				<key>hotstring</key>
+				<string>C</string>
+				<key>leftcursor</key>
+				<false/>
+				<key>modsmode</key>
+				<integer>0</integer>
+				<key>relatedAppsMode</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.hotkey</string>
+			<key>uid</key>
+			<string>85B908AC-71D5-463F-AAEA-FEE70733FC56</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>7656F3F6-C648-49F0-8F69-2DCCA4C3C3D6</key>
+		<dict>
+			<key>xpos</key>
+			<real>360</real>
+			<key>ypos</key>
+			<real>135</real>
+		</dict>
+		<key>85B908AC-71D5-463F-AAEA-FEE70733FC56</key>
+		<dict>
+			<key>xpos</key>
+			<real>75</real>
+			<key>ypos</key>
+			<real>135</real>
+		</dict>
+		<key>D421D643-0BB6-4B0D-B800-B12DF1519855</key>
+		<dict>
+			<key>xpos</key>
+			<real>225</real>
+			<key>ypos</key>
+			<real>135</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
