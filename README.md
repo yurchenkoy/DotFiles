@@ -11,6 +11,10 @@ Personal dotfiles for macOS. Managed with two simple scripts.
 | lazyvim / nvim | `~/.config/nvim/` |
 | starship | `~/.config/starship.toml` |
 | fsh themes | `~/.config/fsh/` |
+| alfred | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
+| git | `~/.gitconfig` |
+| karabiner | `~/.config/karabiner/karabiner.json` |
+| aerospace | `~/.config/aerospace/aerospace.toml` |
 
 ## First time setup on a new machine
 
@@ -19,22 +23,22 @@ Personal dotfiles for macOS. Managed with two simple scripts.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # 2. Clone the repo
-git clone <https://github.com/yurchenkoy/DotFiles> ~/Documents/DotFiles
+git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles
 
-# 3. Run init (makes scripts executable + symlinks them to ~/.local/bin)
-cd ~/Documents/DotFiles
-./init.sh
+# 3. Run setup (makes scripts executable + symlinks them to ~/.local/bin)
+zsh ~/Documents/DotFiles/setup.sh
 
 # 4. Install all dependencies
 brew bundle install
 
 # 5. Apply configs
-dsync-down
-# 6. Give permisisons 
+dotfiles-distribute
+
+# 6. Give permissions
 chmod go-w "$(brew --prefix)/share/zsh-completions"
 chmod go-w "$(brew --prefix)/share"
 
-#7. Update theme (optional)
+# 7. Update theme (optional)
 fast-theme ~/.config/fsh/tokyodark.ini
 ```
 
@@ -42,30 +46,31 @@ fast-theme ~/.config/fsh/tokyodark.ini
 
 ```zsh
 # After editing configs — save to repo
-dsync-up
+dotfiles-collect
 git diff                                     # review what changed
 git add -A && git commit -m 'update configs'
 git push
 
 # On another machine — pull and apply
-dsync-down
+dotfiles-distribute
 ```
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `dsync-up` | Copy live configs into the repo |
-| `dsync-up --dry-run` | Preview what would be copied, no writes |
-| `dsync-down` | Pull, diff, confirm, then apply to live locations |
-| `dsync-down --dry-run` | Preview incoming changes only, no writes |
-| `dsync-down --force` | Apply without confirmation prompt |
+| `dotfiles-collect` | Copy live configs into the repo |
+| `dotfiles-collect --dry-run` | Preview what would be copied, no writes |
+| `dotfiles-distribute` | Pull, diff, confirm, then apply to live locations |
+| `dotfiles-distribute --dry-run` | Preview incoming changes only, no writes |
+| `dotfiles-distribute --force` | Apply without confirmation prompt |
 
 ## Adding a new config
 
-Add one line to the `CONFIG_MAP` array near the top of both `bin/dsync-up`
-and `bin/dsync-down`, following the existing format. Then run `dsync-up` to
-seed it into the repo.
+Add one matching entry to the `SOURCES`, `DESTINATIONS`, and `TYPES` arrays
+near the top of both `scripts/dotfiles-collect` and `scripts/dotfiles-distribute`,
+following the existing format. Then run `dotfiles-collect` to seed it into
+the repo.
 
 ## Regenerating the Brewfile
 
