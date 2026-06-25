@@ -1,6 +1,13 @@
 export EDITOR="/opt/homebrew/bin/nvim"
 export VISUAL="nvim"
 
+# zsh chooses its line-editor keymap from $EDITOR/$VISUAL: because "nvim"
+# contains the substring "vi", zsh would otherwise default to VI mode at the
+# prompt (main -> viins). That splits editing into insert/command modes, adds an
+# ESC-disambiguation delay to the arrow keys, and leaves Tab undefined in vicmd.
+# Force emacs-style editing explicitly. (This does not affect nvim as the editor.)
+bindkey -e
+
 # --- Python related ---
 alias python='python3.11'
 export PATH="$HOME/.local/bin:$PATH"
@@ -199,20 +206,33 @@ ZSH_AUTOSUGGEST_HISTORY_IGNORE_CASE=1
 # If a suggestion is visible: accept up to the next path separator.
 # If no suggestion: open fzf-tab completion picker (Shift+Tab does the same).
 _accept_suggestion_to_slash() {
-  local suggestion="${POSTDISPLAY}"
-  if [[ -z "$suggestion" ]]; then
+  # No suggestion visible: fall through to the fzf-tab completion picker.
+  if [[ -z "$POSTDISPLAY" ]]; then
     zle fzf-tab-complete
     return
   fi
-  local slash_pos="${suggestion%%/*}"
+  # Accept the suggestion up to (and including) the next path separator, and
+  # keep the remainder visible as a live preview of the rest of the path.
+  local suggestion="$POSTDISPLAY"
   if [[ "$suggestion" == */* ]]; then
-    LBUFFER+="${slash_pos}/"
+    LBUFFER+="${suggestion%%/*}/"
     POSTDISPLAY="${suggestion#*/}"
   else
     LBUFFER+="$suggestion"
     POSTDISPLAY=""
   fi
+  # Both highlighters must be refreshed by hand, in this order. This widget's
+  # name starts with "_", so neither fast-syntax-highlighting nor zsh-
+  # autosuggestions wraps it -- nothing recolors the line automatically, so
+  # without these calls the change wouldn't show until the next ordinary
+  # keystroke (the "color only updates when I press space" bug).
+  #   1. _zsh_highlight: fast-syntax recolors the accepted text -- e.g. a valid
+  #      path turns pink+underline. It rebuilds region_highlight from the buffer
+  #      and therefore drops the suggestion's gray, so it must come first.
+  #   2. _zsh_autosuggest_highlight_apply: re-adds the gray over the remaining
+  #      preview (and keeps the plugin's highlight bookkeeping in sync).
   _zsh_highlight
+  _zsh_autosuggest_highlight_apply
 }
 
 zle -N _accept_suggestion_to_slash
@@ -221,8 +241,9 @@ bindkey '^I' _accept_suggestion_to_slash        # Tab
 # ── Accept full autosuggestion (Right Arrow) ──
 _accept_or_forward_char() {
   if [[ -n "$POSTDISPLAY" ]]; then
-    zle autosuggest-accept
-    _zsh_highlight
+    zle autosuggest-accept   # accept the whole suggestion into the buffer
+    _zsh_highlight           # fast-syntax recolors it now (valid path -> pink+underline),
+                             # instead of waiting for the next keystroke
   else
     zle forward-char
   fi
