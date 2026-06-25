@@ -6,7 +6,13 @@
 [user]
 	name = Yuriy Y.
 	email = 30913292+yurchenkoy@users.noreply.github.com
+	signingkey = 5AAD262109789ACC
 [core]
 	editor = nvim
 [init]
 	defaultBranch = main
+[gpg]
+	format = openpgp
+	program = /opt/homebrew/bin/gpg
+[commit]
+	gpgsign = true

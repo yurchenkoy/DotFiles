@@ -120,7 +120,7 @@ eval "$(zoxide init zsh)"   # or bash
 # Project picker: Ctrl+P opens fuzzy finder scoped to git repos
 prj() {
   local dir
-  dir=$(find ~/Documents/ -maxdepth 3 -name ".git" -type d 2>/dev/null \
+  dir=$(find ~/Documents/ -maxdepth 4 -name ".git" -type d 2>/dev/null \
         | sed 's|/.git||' \
         | fzf \
             --delimiter '/' \
@@ -239,3 +239,4 @@ bindkey '^[[Z' fzf-tab-complete                 # Shift+Tab
 # ---- Load zsh-autosuggestions (must be last) ----
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
+export GPG_TTY=$(tty)
