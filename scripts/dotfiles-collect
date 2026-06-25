@@ -4,7 +4,16 @@
 
 set -euo pipefail
 
-REPO_DIR="${DOTFILES_DIR:-$HOME/Documents/DotFiles}"
+if [[ -n "${DOTFILES_DIR:-}" ]]; then
+  REPO_DIR="$DOTFILES_DIR"
+else
+  REPO_DIR=$(find "$HOME/Documents" -maxdepth 3 -type d -name "DotFiles" 2>/dev/null | head -1)
+  if [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]]; then
+    echo "  ✖  Could not find DotFiles repo under ~/Documents (depth ≤ 3)."
+    echo "     Set \$DOTFILES_DIR to override."
+    exit 1
+  fi
+fi
 DRY_RUN=0
 FORCE=0
 for arg in "$@"; do
@@ -13,8 +22,20 @@ for arg in "$@"; do
 done
 
 # ── Config map ────────────────────────────────────────────────────────────────
-# Add new entries as a matching triplet across all three arrays.
+# Add new entries as a matching quadruplet across all four arrays.
 # type = file | dir
+
+typeset -a LABELS=(
+  "zsh"
+  "ghostty"
+  "nvim"
+  "starship"
+  "fsh"
+  "alfred"
+  "git"
+  "karabiner"
+  "aerospace"
+)
 
 typeset -a SOURCES=(
   "$HOME/.zshrc"
@@ -58,11 +79,66 @@ RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RE
 echo "\n${CYAN}═══ dotfiles-collect ═══════════════════════════════${RESET}"
 [[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN — nothing will be written${RESET}\n"
 
+# ── Selection menu ────────────────────────────────────────────────────────────
+typeset -A SELECTED_SET=()
+BREW_SELECTED=0
+n=${#SOURCES[@]}
+
+if [[ $FORCE -eq 1 ]]; then
+  for i in {1..$n}; do SELECTED_SET[$i]=1; done
+  BREW_SELECTED=1
+elif command -v fzf &>/dev/null; then
+  selected_labels=$(printf '%s\n' "${LABELS[@]}" "Brewfile" | fzf \
+    --multi \
+    --height=~60% \
+    --layout=reverse \
+    --border=rounded \
+    --prompt="  collect > " \
+    --header="Tab·toggle  Ctrl-A·all  Enter·confirm  Esc·cancel" \
+    --color="header:italic,border:cyan,prompt:cyan,marker:green" \
+    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || {
+    echo "  Cancelled.\n"; exit 0
+  }
+  [[ -z "$selected_labels" ]] && echo "  Nothing selected.\n" && exit 0
+  for i in {1..$n}; do
+    if echo "$selected_labels" | grep -qxF "${LABELS[$i]}"; then SELECTED_SET[$i]=1; fi
+  done
+  if echo "$selected_labels" | grep -qxF "Brewfile"; then BREW_SELECTED=1; fi
+else
+  echo "  ${CYAN}Select what to collect (space-separated numbers, 'a' or enter for all):${RESET}\n"
+  for i in {1..$n}; do
+    printf "    %2d) %s\n" $i "${LABELS[$i]}"
+  done
+  printf "    %2d) Brewfile\n" $((n + 1))
+  echo ""
+  echo -n "  > "
+  read -r selection
+  echo ""
+
+  selection="${selection//,/ }"
+  if [[ -z "$selection" || "$selection" == "a" ]]; then
+    for i in {1..$n}; do SELECTED_SET[$i]=1; done
+    BREW_SELECTED=1
+  else
+    for token in ${=selection}; do
+      if [[ "$token" =~ ^[0-9]+$ ]]; then
+        if (( token >= 1 && token <= n )); then
+          SELECTED_SET[$token]=1
+        elif (( token == n + 1 )); then
+          BREW_SELECTED=1
+        fi
+      fi
+    done
+  fi
+fi
+
 # ── Diff preview ──────────────────────────────────────────────────────────────
 echo "  ${CYAN}Previewing what would change in the repo:${RESET}\n"
 diff_found=0
 
-for i in {1..${#SOURCES[@]}}; do
+for i in {1..$n}; do
+  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
+
   local_src="${SOURCES[$i]}"
   repo_dst="$REPO_DIR/${DESTINATIONS[$i]}"
   kind="${TYPES[$i]}"
@@ -100,11 +176,13 @@ for i in {1..${#SOURCES[@]}}; do
 done
 
 # ── Brewfile preview ─────────────────────────────────────────────────────────
-if command -v brew &>/dev/null; then
-  echo "  ${YELLOW}~${RESET}  Brewfile will be refreshed"
-  diff_found=1
-else
-  echo "  ${YELLOW}⚠${RESET}  brew not found, skipping Brewfile"
+if [[ $BREW_SELECTED -eq 1 ]]; then
+  if command -v brew &>/dev/null; then
+    echo "  ${YELLOW}~${RESET}  Brewfile will be refreshed"
+    diff_found=1
+  else
+    echo "  ${YELLOW}⚠${RESET}  brew not found, skipping Brewfile"
+  fi
 fi
 
 echo ""
@@ -126,7 +204,9 @@ fi
 
 # ── Apply ─────────────────────────────────────────────────────────────────────
 changes=0
-for i in {1..${#SOURCES[@]}}; do
+for i in {1..$n}; do
+  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
+
   local_src="${SOURCES[$i]}"
   repo_dst="$REPO_DIR/${DESTINATIONS[$i]}"
   kind="${TYPES[$i]}"
@@ -146,7 +226,7 @@ for i in {1..${#SOURCES[@]}}; do
 done
 
 # ── Brew bundle dump ──────────────────────────────────────────────────────────
-if command -v brew &>/dev/null; then
+if [[ $BREW_SELECTED -eq 1 ]] && command -v brew &>/dev/null; then
   brew bundle dump --force --file="$REPO_DIR/Brewfile"
   echo "  ${GREEN}✔${RESET}  Brewfile updated"
   changes=$((changes + 1))

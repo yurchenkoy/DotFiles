@@ -60,16 +60,16 @@ dotfiles-distribute
 
 | Command | What it does |
 |---|---|
-| `dotfiles-collect` | Copy live configs into the repo |
-| `dotfiles-collect --dry-run` | Preview what would be copied, no writes |
-| `dotfiles-collect --force` | Copy without confirmation prompt |
-| `dotfiles-distribute` | Pull, diff, confirm, then apply to live locations |
-| `dotfiles-distribute --dry-run` | Preview incoming changes only, no writes |
-| `dotfiles-distribute --force` | Apply without confirmation prompt |
+| `dotfiles-collect` | Select configs interactively, diff, confirm, then copy into repo |
+| `dotfiles-collect --dry-run` | Show selection menu and preview, no writes |
+| `dotfiles-collect --force` | Skip selection menu and confirmation — collect everything |
+| `dotfiles-distribute` | Select configs interactively, diff, confirm, then apply to live locations |
+| `dotfiles-distribute --dry-run` | Show selection menu and preview, no writes |
+| `dotfiles-distribute --force` | Skip selection menu and confirmation — distribute everything |
 
 ## Adding a new config
 
-Add one line to the `SOURCES`, `DESTINATIONS`, and `TYPES` arrays near the top of both
+Add one entry to the `LABELS`, `SOURCES`, `DESTINATIONS`, and `TYPES` arrays near the top of both
 `scripts/dotfiles-collect` and `scripts/dotfiles-distribute`, following the existing format.
 Then run `dotfiles-collect` to seed it into the repo.
 

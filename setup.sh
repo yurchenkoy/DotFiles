@@ -37,9 +37,10 @@ done
 for script in "$SCRIPTS_DIR"/*; do
   name="$(basename "$script")"
   target="$BIN_DIR/$name"
-  if [[ -L "$target" ]]; then
+  if [[ -L "$target" && -e "$target" ]]; then
     echo "  ${GREEN}✔${RESET}  $name already symlinked, skipping"
   else
+    [[ -L "$target" ]] && rm "$target"   # remove dangling symlink before replacing
     ln -s "$script" "$target"
     echo "  ${GREEN}✔${RESET}  Symlinked $name → $target"
   fi

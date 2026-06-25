@@ -4,7 +4,16 @@
 
 set -euo pipefail
 
-REPO_DIR="${DOTFILES_DIR:-$HOME/Documents/DotFiles}"
+if [[ -n "${DOTFILES_DIR:-}" ]]; then
+  REPO_DIR="$DOTFILES_DIR"
+else
+  REPO_DIR=$(find "$HOME/Documents" -maxdepth 3 -type d -name "DotFiles" 2>/dev/null | head -1)
+  if [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]]; then
+    echo "  ✖  Could not find DotFiles repo under ~/Documents (depth ≤ 3)."
+    echo "     Set \$DOTFILES_DIR to override."
+    exit 1
+  fi
+fi
 DRY_RUN=0
 FORCE=0
 for arg in "$@"; do
@@ -13,8 +22,20 @@ for arg in "$@"; do
 done
 
 # ── Config map ────────────────────────────────────────────────────────────────
-# Add new entries as a matching triplet across all three arrays.
+# Add new entries as a matching quadruplet across all four arrays.
 # type = file | dir
+
+typeset -a LABELS=(
+  "zsh"
+  "ghostty"
+  "nvim"
+  "starship"
+  "fsh"
+  "alfred"
+  "git"
+  "karabiner"
+  "aerospace"
+)
 
 typeset -a SOURCES=(
   "configs/zsh/.zshrc"
@@ -58,11 +79,57 @@ RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RE
 echo "\n${CYAN}═══ dotfiles-distribute ═════════════════════════════${RESET}"
 [[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN — nothing will be written${RESET}\n"
 
+# ── Selection menu ────────────────────────────────────────────────────────────
+typeset -A SELECTED_SET=()
+n=${#SOURCES[@]}
+
+if [[ $FORCE -eq 1 ]]; then
+  for i in {1..$n}; do SELECTED_SET[$i]=1; done
+elif command -v fzf &>/dev/null; then
+  selected_labels=$(printf '%s\n' "${LABELS[@]}" | fzf \
+    --multi \
+    --height=~60% \
+    --layout=reverse \
+    --border=rounded \
+    --prompt="  distribute > " \
+    --header="Tab·toggle  Ctrl-A·all  Enter·confirm  Esc·cancel" \
+    --color="header:italic,border:cyan,prompt:cyan,marker:green" \
+    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || {
+    echo "  Cancelled.\n"; exit 0
+  }
+  [[ -z "$selected_labels" ]] && echo "  Nothing selected.\n" && exit 0
+  for i in {1..$n}; do
+    if echo "$selected_labels" | grep -qxF "${LABELS[$i]}"; then SELECTED_SET[$i]=1; fi
+  done
+else
+  echo "  ${CYAN}Select what to distribute (space-separated numbers, 'a' or enter for all):${RESET}\n"
+  for i in {1..$n}; do
+    printf "    %2d) %s\n" $i "${LABELS[$i]}"
+  done
+  echo ""
+  echo -n "  > "
+  read -r selection
+  echo ""
+
+  selection="${selection//,/ }"
+  if [[ -z "$selection" || "$selection" == "a" ]]; then
+    for i in {1..$n}; do SELECTED_SET[$i]=1; done
+  else
+    for token in ${=selection}; do
+      if [[ "$token" =~ ^[0-9]+$ ]] && (( token >= 1 && token <= n )); then
+        SELECTED_SET[$token]=1
+      fi
+    done
+  fi
+fi
+
 # ── Diff preview ──────────────────────────────────────────────────────────────
 echo "  ${CYAN}Previewing what would change on this machine:${RESET}\n"
 diff_found=0
 
-for i in {1..${#SOURCES[@]}}; do
+for i in {1..$n}; do
+  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
+
   repo_src="$REPO_DIR/${SOURCES[$i]}"
   live_dst="${DESTINATIONS[$i]}"
   kind="${TYPES[$i]}"
@@ -118,7 +185,9 @@ fi
 
 # ── Apply ─────────────────────────────────────────────────────────────────────
 changes=0
-for i in {1..${#SOURCES[@]}}; do
+for i in {1..$n}; do
+  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
+
   repo_src="$REPO_DIR/${SOURCES[$i]}"
   live_dst="${DESTINATIONS[$i]}"
   kind="${TYPES[$i]}"
