@@ -25,8 +25,9 @@ Personal dotfiles for macOS. Managed with two simple scripts.
 # 2. Clone the repo
 git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles
 
-# 3. Run setup (makes scripts executable + symlinks them to ~/.local/bin)
-zsh ~/Documents/DotFiles/setup.sh
+# 3. Run setup (makes scripts executable, symlinks them to ~/.local/bin, cleans stale links)
+cd ~/Documents/DotFiles
+./setup.sh
 
 # 4. Install all dependencies
 brew bundle install
@@ -61,16 +62,16 @@ dotfiles-distribute
 |---|---|
 | `dotfiles-collect` | Copy live configs into the repo |
 | `dotfiles-collect --dry-run` | Preview what would be copied, no writes |
+| `dotfiles-collect --force` | Copy without confirmation prompt |
 | `dotfiles-distribute` | Pull, diff, confirm, then apply to live locations |
 | `dotfiles-distribute --dry-run` | Preview incoming changes only, no writes |
 | `dotfiles-distribute --force` | Apply without confirmation prompt |
 
 ## Adding a new config
 
-Add one matching entry to the `SOURCES`, `DESTINATIONS`, and `TYPES` arrays
-near the top of both `scripts/dotfiles-collect` and `scripts/dotfiles-distribute`,
-following the existing format. Then run `dotfiles-collect` to seed it into
-the repo.
+Add one line to the `SOURCES`, `DESTINATIONS`, and `TYPES` arrays near the top of both
+`scripts/dotfiles-collect` and `scripts/dotfiles-distribute`, following the existing format.
+Then run `dotfiles-collect` to seed it into the repo.
 
 ## Regenerating the Brewfile
 
