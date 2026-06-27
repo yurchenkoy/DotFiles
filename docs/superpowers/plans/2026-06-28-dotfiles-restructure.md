@@ -881,7 +881,8 @@ else
   if command -v systemctl &>/dev/null; then
     systemctl --user enable --now ssh-agent.service 2>/dev/null && echo "  ${GREEN}✔${RESET} ssh-agent.service" || true
   fi
-  echo "  ${YELLOW}Run dotfiles-distribute, then finish these PRIVILEGED/MANUAL steps:${RESET}"
+  echo "  ${YELLOW}Run dotfiles-distribute, then finish these steps:${RESET}"
+  echo "    • apply fsh theme (regenerates the cache): fast-theme XDG:tokyodark"
   echo "    • install packages per packages/linux-packages.md (dnf/COPR/manual)"
   echo "    • install nerd fonts into ~/.local/share/fonts/ then: fc-cache -f"
   echo "    • install xremap binary to /usr/local/bin/xremap"
@@ -950,8 +951,9 @@ config-map. One repo provisions either machine after a reinstall or on new hardw
 2. Install packages per `packages/linux-packages.md`.
 3. `./setup.sh` (symlinks scripts, clones zsh plugins, enables ssh-agent, prints manual steps).
 4. `dotfiles-distribute`
-5. Finish the printed privileged/manual steps (xremap binary, greetd, KeePassXC, GitHub key).
-6. Place your SSH signing key (see `secrets/signing.template`) + load it via KeePassXC.
+5. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
+6. Finish the printed privileged/manual steps (xremap binary, greetd, KeePassXC, GitHub key).
+7. Place your SSH signing key (see `secrets/signing.template`) + load it via KeePassXC.
 
 ## Daily workflow
 ```
