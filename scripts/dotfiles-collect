@@ -1,239 +1,61 @@
 #!/usr/bin/env zsh
-# dotfiles-collect — copy live configs INTO the dotfiles repo
+# dotfiles-collect — copy live configs INTO the repo (OS-aware).
 # Usage: dotfiles-collect [--dry-run] [--force]
-
 set -euo pipefail
 
-if [[ -n "${DOTFILES_DIR:-}" ]]; then
-  REPO_DIR="$DOTFILES_DIR"
+if [[ -n "${DOTFILES_DIR:-}" ]]; then REPO_DIR="$DOTFILES_DIR"
 else
   REPO_DIR=$(find "$HOME/Documents" -maxdepth 3 -type d -name "DotFiles" 2>/dev/null | head -1)
-  if [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]]; then
-    echo "  ✖  Could not find DotFiles repo under ~/Documents (depth ≤ 3)."
-    echo "     Set \$DOTFILES_DIR to override."
-    exit 1
-  fi
+  [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]] && { echo "  ✖  DotFiles repo not found; set \$DOTFILES_DIR."; exit 1; }
 fi
-DRY_RUN=0
-FORCE=0
-for arg in "$@"; do
-  [[ "$arg" == "--dry-run" ]] && DRY_RUN=1
-  [[ "$arg" == "--force"   ]] && FORCE=1
-done
+source "$REPO_DIR/scripts/lib/config-map.zsh"
 
-# ── Config map ────────────────────────────────────────────────────────────────
-# Add new entries as a matching quadruplet across all four arrays.
-# type = file | dir
-
-typeset -a LABELS=(
-  "zsh"
-  "ghostty"
-  "nvim"
-  "starship"
-  "fsh"
-  "alfred"
-  "git"
-  "karabiner"
-  "aerospace"
-)
-
-typeset -a SOURCES=(
-  "$HOME/.zshrc"
-  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
-  "$HOME/.config/nvim"
-  "$HOME/.config/starship.toml"
-  "$HOME/.config/fsh"
-  "$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
-  "$HOME/.gitconfig"
-  "$HOME/.config/karabiner/karabiner.json"
-  "$HOME/.config/aerospace/aerospace.toml"
-)
-
-typeset -a DESTINATIONS=(
-  "configs/zsh/.zshrc"
-  "configs/ghostty/config"
-  "configs/nvim"
-  "configs/starship/starship.toml"
-  "configs/fsh"
-  "configs/alfred/Alfred.alfredpreferences"
-  "configs/git/.gitconfig"
-  "configs/karabiner/karabiner.json"
-  "configs/aerospace/aerospace.toml"
-)
-
-typeset -a TYPES=(
-  "file"
-  "file"
-  "dir"
-  "file"
-  "dir"
-  "dir"
-  "file"
-  "file"
-  "file"
-)
-# ──────────────────────────────────────────────────────────────────────────────
-
+DRY_RUN=0; FORCE=0
+for a in "$@"; do [[ "$a" == "--dry-run" ]] && DRY_RUN=1; [[ "$a" == "--force" ]] && FORCE=1; done
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
+echo "\n${CYAN}═══ dotfiles-collect ($(df_os)) ════════════════${RESET}"
+[[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN${RESET}"
 
-echo "\n${CYAN}═══ dotfiles-collect ═══════════════════════════════${RESET}"
-[[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN — nothing will be written${RESET}\n"
-
-# ── Selection menu ────────────────────────────────────────────────────────────
-typeset -A SELECTED_SET=()
-BREW_SELECTED=0
-n=${#SOURCES[@]}
-
-if [[ $FORCE -eq 1 ]]; then
-  for i in {1..$n}; do SELECTED_SET[$i]=1; done
-  BREW_SELECTED=1
+typeset -A SEL=(); typeset -a LABELS=(); typeset -A LTYPE LREPO LLIVE
+collect_meta(){ LABELS+=("$1"); LTYPE[$1]="$2"; LREPO[$1]="$3"; LLIVE[$1]="$4"; }
+df_each collect_meta
+BREW=0
+if [[ $FORCE -eq 1 ]]; then for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ "$(df_os)" == mac ]] && BREW=1
 elif command -v fzf &>/dev/null; then
-  selected_labels=$(printf '%s\n' "${LABELS[@]}" "Brewfile" | fzf \
-    --multi \
-    --height=~60% \
-    --layout=reverse \
-    --border=rounded \
-    --prompt="  collect > " \
-    --header="Tab·toggle  Ctrl-A·all  Enter·confirm  Esc·cancel" \
-    --color="header:italic,border:cyan,prompt:cyan,marker:green" \
-    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || {
-    echo "  Cancelled.\n"; exit 0
-  }
-  [[ -z "$selected_labels" ]] && echo "  Nothing selected.\n" && exit 0
-  for i in {1..$n}; do
-    if echo "$selected_labels" | grep -qxF "${LABELS[$i]}"; then SELECTED_SET[$i]=1; fi
-  done
-  if echo "$selected_labels" | grep -qxF "Brewfile"; then BREW_SELECTED=1; fi
-else
-  echo "  ${CYAN}Select what to collect (space-separated numbers, 'a' or enter for all):${RESET}\n"
-  for i in {1..$n}; do
-    printf "    %2d) %s\n" $i "${LABELS[$i]}"
-  done
-  printf "    %2d) Brewfile\n" $((n + 1))
-  echo ""
-  echo -n "  > "
-  read -r selection
-  echo ""
+  menu=("${LABELS[@]}"); [[ "$(df_os)" == mac ]] && menu+=("Brewfile")
+  chosen=$(printf '%s\n' "${menu[@]}" | fzf --multi --height=~60% --layout=reverse --border=rounded \
+    --prompt="  collect > " --header="Tab·toggle Ctrl-A·all Enter·confirm" \
+    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || { echo "  Cancelled."; exit 0; }
+  [[ -z "$chosen" ]] && { echo "  Nothing selected."; exit 0; }
+  while IFS= read -r l; do [[ "$l" == "Brewfile" ]] && BREW=1 || SEL[$l]=1; done <<< "$chosen"
+else for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ "$(df_os)" == mac ]] && BREW=1; fi
 
-  selection="${selection//,/ }"
-  if [[ -z "$selection" || "$selection" == "a" ]]; then
-    for i in {1..$n}; do SELECTED_SET[$i]=1; done
-    BREW_SELECTED=1
-  else
-    for token in ${=selection}; do
-      if [[ "$token" =~ ^[0-9]+$ ]]; then
-        if (( token >= 1 && token <= n )); then
-          SELECTED_SET[$token]=1
-        elif (( token == n + 1 )); then
-          BREW_SELECTED=1
-        fi
-      fi
-    done
-  fi
-fi
-
-# ── Diff preview ──────────────────────────────────────────────────────────────
-echo "  ${CYAN}Previewing what would change in the repo:${RESET}\n"
 diff_found=0
-
-for i in {1..$n}; do
-  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
-
-  local_src="${SOURCES[$i]}"
-  repo_dst="$REPO_DIR/${DESTINATIONS[$i]}"
-  kind="${TYPES[$i]}"
-
-  if [[ ! -e "$local_src" ]]; then
-    echo "  ${YELLOW}⚠${RESET}  Not found, skipping: $local_src"
-    continue
-  fi
-
-  if [[ ! -e "$repo_dst" ]]; then
-    echo "  ${GREEN}+${RESET}  New (not yet in repo): ${DESTINATIONS[$i]}"
-    diff_found=1
-    continue
-  fi
-
-  if [[ $kind == "file" ]]; then
-    if ! diff -q "$repo_dst" "$local_src" &>/dev/null; then
-      echo "  ${YELLOW}~${RESET}  Changed: ${DESTINATIONS[$i]}"
-      diff --unified=2 --color=always "$repo_dst" "$local_src" | sed 's/^/      /' || true
-      diff_found=1
-    else
-      echo "  ${GREEN}✔${RESET}  Up to date: ${DESTINATIONS[$i]}"
-    fi
+for l in "${LABELS[@]}"; do
+  [[ -z "${SEL[$l]:-}" ]] && continue
+  live="${LLIVE[$l]}"; dst="$REPO_DIR/${LREPO[$l]}"; kind="${LTYPE[$l]}"
+  [[ ! -e "$live" ]] && { echo "  ${YELLOW}⚠${RESET}  not found live: $l"; continue; }
+  if [[ ! -e "$dst" ]]; then echo "  ${GREEN}+${RESET}  new in repo: $l"; diff_found=1; continue; fi
+  if [[ "$kind" == file ]]; then
+    if ! diff -q "$dst" "$live" &>/dev/null; then echo "  ${YELLOW}~${RESET}  changed: $l"; diff_found=1
+    else echo "  ${GREEN}✔${RESET}  up to date: $l"; fi
   else
-    local delta
-    delta=$(rsync -an --delete --out-format="%n" "$local_src/" "$repo_dst/" 2>/dev/null || true)
-    if [[ -n "$delta" ]]; then
-      echo "  ${YELLOW}~${RESET}  Dir has changes: ${DESTINATIONS[$i]}"
-      echo "$delta" | sed 's/^/      /'
-      diff_found=1
-    else
-      echo "  ${GREEN}✔${RESET}  Up to date: ${DESTINATIONS[$i]}"
-    fi
+    d=$(rsync -an --delete --out-format="%n" "$live/" "$dst/" 2>/dev/null || true)
+    [[ -n "$d" ]] && { echo "  ${YELLOW}~${RESET}  dir changed: $l"; diff_found=1; } || echo "  ${GREEN}✔${RESET}  up to date: $l"
   fi
 done
-
-# ── Brewfile preview ─────────────────────────────────────────────────────────
-if [[ $BREW_SELECTED -eq 1 ]]; then
-  if command -v brew &>/dev/null; then
-    echo "  ${YELLOW}~${RESET}  Brewfile will be refreshed"
-    diff_found=1
-  else
-    echo "  ${YELLOW}⚠${RESET}  brew not found, skipping Brewfile"
-  fi
-fi
-
-echo ""
-
-if [[ $diff_found -eq 0 ]]; then
-  echo "  ${GREEN}Everything already up to date. Nothing to do.${RESET}\n"
-  exit 0
-fi
-
+[[ $BREW -eq 1 ]] && command -v brew &>/dev/null && { echo "  ${YELLOW}~${RESET}  Brewfile refresh"; diff_found=1; }
+[[ $diff_found -eq 0 ]] && { echo "  ${GREEN}Nothing to do.${RESET}"; exit 0; }
 [[ $DRY_RUN -eq 1 ]] && exit 0
+if [[ $FORCE -eq 0 ]]; then echo -n "  Collect? (y/N) "; read -r r; [[ "$r" != [yY] ]] && { echo "  Cancelled."; exit 0; }; fi
 
-# ── Confirm unless --force ────────────────────────────────────────────────────
-if [[ $FORCE -eq 0 ]]; then
-  echo -n "  Collect these changes into the repo? (y/N) "
-  read -r reply
-  [[ "$reply" != "y" && "$reply" != "Y" ]] && echo "  Cancelled.\n" && exit 0
-  echo ""
-fi
-
-# ── Apply ─────────────────────────────────────────────────────────────────────
-changes=0
-for i in {1..$n}; do
-  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
-
-  local_src="${SOURCES[$i]}"
-  repo_dst="$REPO_DIR/${DESTINATIONS[$i]}"
-  kind="${TYPES[$i]}"
-
-  [[ ! -e "$local_src" ]] && continue
-
-  if [[ $kind == "dir" ]]; then
-    mkdir -p "$repo_dst"
-    rsync -a --delete "$local_src/" "$repo_dst/"
-    echo "  ${GREEN}✔${RESET}  Synced dir:  $local_src → $repo_dst"
-  else
-    mkdir -p "$(dirname "$repo_dst")"
-    cp "$local_src" "$repo_dst"
-    echo "  ${GREEN}✔${RESET}  Copied file: $local_src → $repo_dst"
-  fi
-  changes=$((changes + 1))
+for l in "${LABELS[@]}"; do
+  [[ -z "${SEL[$l]:-}" ]] && continue
+  live="${LLIVE[$l]}"; dst="$REPO_DIR/${LREPO[$l]}"; kind="${LTYPE[$l]}"
+  [[ ! -e "$live" ]] && continue
+  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -a --delete "$live/" "$dst/"
+  else mkdir -p "$(dirname "$dst")"; cp "$live" "$dst"; fi
+  echo "  ${GREEN}✔${RESET}  $live → $dst"
 done
-
-# ── Brew bundle dump ──────────────────────────────────────────────────────────
-if [[ $BREW_SELECTED -eq 1 ]] && command -v brew &>/dev/null; then
-  brew bundle dump --force --file="$REPO_DIR/Brewfile"
-  echo "  ${GREEN}✔${RESET}  Brewfile updated"
-  changes=$((changes + 1))
-fi
-
-echo ""
-echo "  ${GREEN}Done.${RESET} $changes item(s) collected into repo."
-echo "  Review:  cd $REPO_DIR && git diff"
-echo "  Commit:  git add -A && git commit -m 'update configs'"
-echo ""
+[[ $BREW -eq 1 ]] && command -v brew &>/dev/null && { brew bundle dump --force --file="$REPO_DIR/packages/Brewfile"; echo "  ${GREEN}✔${RESET}  Brewfile updated"; }
+echo "  ${GREEN}Done.${RESET} Review: cd $REPO_DIR && git diff"
