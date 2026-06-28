@@ -26,7 +26,8 @@ how each was obtained on Fedora 44. Adapt per distro.
 | wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
 | keepassxc | `dnf install keepassxc` | SSH agent for git signing |
 | xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
-| hyprland + waybar + hyprpaper + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
+| hyprland + waybar + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
+| swaybg | `dnf install swaybg` | wallpaper (replaces hyprpaper, which is broken on Fedora's mixed Hyprland COPRs — see note) |
 | SwayNotificationCenter | `dnf install SwayNotificationCenter` | notifications + history panel (replaces mako) |
 | wlogout | `dnf install wlogout` | power menu grid |
 | grim + slurp + swappy | `dnf install grim slurp swappy` | screenshots + annotate |
