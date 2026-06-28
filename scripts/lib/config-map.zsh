@@ -45,6 +45,8 @@ typeset -ga DOTFILES_RECORDS=(
   "hyprlock|linux|file|configs/linux/hypr/hyprlock.conf|-|$HOME/.config/hypr/hyprlock.conf"
   "wlogout-layout|linux|file|configs/linux/wlogout/layout|-|$HOME/.config/wlogout/layout"
   "wlogout-style|linux|file|configs/linux/wlogout/style.css|-|$HOME/.config/wlogout/style.css"
+  "swaync-config|linux|file|configs/linux/swaync/config.json|-|$HOME/.config/swaync/config.json"
+  "swaync-style|linux|file|configs/linux/swaync/style.css|-|$HOME/.config/swaync/style.css"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record

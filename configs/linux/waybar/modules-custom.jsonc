@@ -20,7 +20,23 @@
         "tooltip": "Click to switch keyboard layout",
         "on-click": "hyprctl switchxkblayout all next && pkill -RTMIN+7 waybar"
     },
-    "custom/notifications": { "format": "" },
+    "custom/notifications": {
+        "exec": "swaync-client -swb",
+        "return-type": "json",
+        "format": "{icon} {text}",
+        "format-icons": {
+            "notification": "<span foreground='#f7768e'><sup></sup></span>",
+            "none": "",
+            "dnd-notification": "<span foreground='#f7768e'><sup></sup></span>",
+            "dnd-none": "",
+            "inhibited-none": "",
+            "dnd-inhibited-none": ""
+        },
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true,
+        "tooltip": "Notifications"
+    },
     "custom/power": {
         "format": "⏻",
         "tooltip": false,
