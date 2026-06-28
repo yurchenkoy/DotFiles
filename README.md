@@ -54,9 +54,13 @@ Add one record to `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh`
 
 ### tuigreet theme (privileged)
 
-The login greeting is themed via greetd's config. Edit `/etc/greetd/config.toml` and set the
-greeter `command`'s `--cmd` line to include a TokyoNight `--theme` string and greeting:
+The login greeting is themed via greetd's config. Edit `/etc/greetd/config.toml` and add a
+TokyoNight `--theme` string + greeting to the existing greeter `command`. IMPORTANT: keep the
+existing `--cmd start-hyprland` (the session wrapper) and `--asterisks` flags — only ADD the
+`--greeting`/`--theme` options:
 
-    command = "tuigreet --remember --time --greeting 'Welcome back' --theme 'border=blue;text=cyan;prompt=magenta;time=blue;action=blue;button=magenta;container=black;input=white' --cmd Hyprland"
+    command = "tuigreet --time --remember --asterisks --greeting 'Welcome back' --theme 'border=blue;text=cyan;prompt=magenta;time=blue;action=blue;button=magenta;container=black;input=white' --cmd start-hyprland"
 
-Then restart greetd: `sudo systemctl restart greetd` (this kills the current session — do it from a TTY or on next reboot).
+Then restart greetd: `sudo systemctl restart greetd` (this kills the current session — do it from a
+TTY or on next reboot). Do NOT change `--cmd start-hyprland` to bare `Hyprland`: `start-hyprland`
+is the wrapper that sets up the session environment.
