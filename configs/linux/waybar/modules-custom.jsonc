@@ -13,16 +13,12 @@
         "tooltip": true,
         "on-click": "blueman-manager"
     },
-    "custom/steam": {
-        "exec": "~/.config/waybar/scripts/steam.sh",
-        "return-type": "json",
-        "interval": 5,
-        "on-click": "steam -shutdown"
-    },
     "custom/language": {
         "exec": "~/.config/waybar/scripts/language.sh",
         "interval": 2,
-        "tooltip": false
+        "signal": 7,
+        "tooltip": "Click to show/hide the layout code",
+        "on-click": "~/.config/waybar/scripts/language-toggle.sh"
     },
     "custom/notifications": { "format": "" },
     "custom/power": {

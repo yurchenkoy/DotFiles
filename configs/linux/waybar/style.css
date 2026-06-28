@@ -38,7 +38,6 @@ window#waybar {
 #custom-language,
 #custom-gpu,
 #custom-bluetooth,
-#custom-steam,
 #custom-notifications,
 #custom-power {
     padding: 0 8px;
@@ -55,7 +54,6 @@ window#waybar {
 #custom-gpu { color: @green; }
 #memory { color: @purple; }
 #custom-language { color: @yellow; }
-#custom-steam { color: @blue; }
 #custom-notifications { color: @yellow; }
 #custom-notifications.dnd-none.none { color: @comment; }
 #custom-power { color: @red; padding: 0 10px; }
