@@ -3,7 +3,7 @@
 
 * {
     font-family: "CaskaydiaCove Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono";
-    font-size: 13px;
+    font-size: 16px;
     min-height: 0;
 }
 
@@ -15,7 +15,7 @@ window#waybar {
 
 #workspaces button {
     padding: 0 8px;
-    color: @comment;
+    color: @fg;                /* inactive workspace numbers match the clock */
     background: transparent;
     border-radius: 6px;
 }
