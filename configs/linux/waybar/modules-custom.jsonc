@@ -19,6 +19,11 @@
         "interval": 5,
         "on-click": "steam -shutdown"
     },
+    "custom/language": {
+        "exec": "~/.config/waybar/scripts/language.sh",
+        "interval": 2,
+        "tooltip": false
+    },
     "custom/notifications": { "format": "" },
     "custom/power": {
         "format": "⏻",

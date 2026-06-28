@@ -2,8 +2,10 @@
 @import "colors.css";
 
 * {
-    font-family: "CaskaydiaCove Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono";
-    font-size: 16px;
+    /* "Symbols Nerd Font" FIRST so icon glyphs render full-size (proportional);
+       latin text has no glyphs there and falls through to CaskaydiaCove Mono. */
+    font-family: "Symbols Nerd Font", "CaskaydiaCove Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono";
+    font-size: 14px;
     min-height: 0;
 }
 
@@ -33,7 +35,7 @@ window#waybar {
 #wireplumber,
 #network,
 #memory,
-#language,
+#custom-language,
 #custom-gpu,
 #custom-bluetooth,
 #custom-steam,
@@ -52,7 +54,7 @@ window#waybar {
 #network.disconnected { color: @red; }
 #custom-gpu { color: @green; }
 #memory { color: @purple; }
-#language { color: @yellow; }
+#custom-language { color: @yellow; }
 #custom-steam { color: @blue; }
 #custom-notifications { color: @yellow; }
 #custom-notifications.dnd-none.none { color: @comment; }

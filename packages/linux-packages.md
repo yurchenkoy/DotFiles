@@ -21,7 +21,8 @@ how each was obtained on Fedora 44. Adapt per distro.
 | zsh-completions | git clone → `~/.local/share/zsh/plugins/zsh-completions` | |
 | fzf-tab | git clone → `~/.local/share/zsh/plugins/fzf-tab` | |
 | fast-syntax-highlighting | git clone → `~/.local/share/zsh/plugins/fast-syntax-highlighting` | |
-| Nerd Fonts | manual → `~/.local/share/fonts/` (JetBrainsMono NL + CaskaydiaCove) | `fc-cache -f` |
+| Nerd Fonts | manual → `~/.local/share/fonts/` (JetBrainsMono NL + CaskaydiaCove **Mono**) | `fc-cache -f` |
+| Symbols Nerd Font | manual → `~/.local/share/fonts/` from nerd-fonts `NerdFontsSymbolsOnly.zip` | full-size Waybar icons; the Mono variants squish glyphs into one cell |
 | ghostty | `dnf install ghostty` | |
 | wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
 | keepassxc | `dnf install keepassxc` | SSH agent for git signing |

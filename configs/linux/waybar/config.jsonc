@@ -15,7 +15,7 @@
         "network",
         "custom/gpu",
         "memory",
-        "hyprland/language",
+        "custom/language",
         "custom/steam",
         "custom/notifications",
         "custom/power"
@@ -63,8 +63,5 @@
         "tooltip-format-disconnected": "Disconnected",
         "on-click": "nm-connection-editor"
     },
-    "memory": { "format": " {percentage}%", "tooltip-format": "{used:0.1f}G / {total:0.1f}G" },
-    "hyprland/language": {
-        "format": " {short}"
-    }
+    "memory": { "format": " {percentage}%", "tooltip-format": "{used:0.1f}G / {total:0.1f}G" }
 }
