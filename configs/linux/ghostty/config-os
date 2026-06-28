@@ -1,0 +1,5 @@
+# linux/ghostty/config-os — Linux-only overrides (loaded after config-base).
+command = /usr/bin/zsh
+clipboard-read = allow
+keybind = ctrl+shift+r=reload_config
+keybind = ctrl+v=activate_key_table:vim

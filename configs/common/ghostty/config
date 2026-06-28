@@ -1,0 +1,3 @@
+# ~/.config/ghostty/config — entrypoint. Base first, then OS overrides.
+config-file = config-base
+config-file = config-os

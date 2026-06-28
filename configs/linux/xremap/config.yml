@@ -1,0 +1,169 @@
+# ════════════════════════════════════════════════════════════════════════
+#  xremap — macOS-style keybindings on Hyprland
+#
+#  Jobs:
+#    1. Caps Lock dual-role : tap = Escape, hold = Hyper (Karabiner parity)
+#    2. Super → Ctrl         : Cmd-style app shortcuts (GUI apps only)
+#    3. Ctrl → emacs text-nav: macOS Ctrl+letter cursor movement (GUI apps)
+#    4. Cmd line/doc nav      : Super+arrows / Super+Backspace (GUI apps)
+#    5. Option word editing   : Alt+arrows / Alt+Backspace (GUI apps)
+#
+#  Terminals are excluded everywhere (Ctrl+C stays SIGINT; readline owns nav).
+#  Window classes come from `xremap --list-windows` (Hyprland class).
+#  Service: ~/.config/systemd/user/xremap.service → /usr/local/bin/xremap
+#
+#  NOTE: the conflicting Super keys — Super+L and Super+1..9 — are intentionally
+#  NOT here. They collide with Caps+Super+L / Caps+Super+1..9 (window mgmt), so
+#  they live in hyprland.conf via `sendshortcut`, where the compositor can tell
+#  Super apart from Hyper+Super. (Letters below don't collide.)
+# ════════════════════════════════════════════════════════════════════════
+
+modmap:
+  # ── Caps Lock: tap = Escape, hold = Hyper ──────────────────────────────
+  #   `held: CapsLock` re-emits the CapsLock keycode, which Hyprland's XKB
+  #   `caps:hyper` turns into Hyper/Mod3 — so Caps+hjkl / Caps+number keep
+  #   working; we only add tap=Esc. (CapsLock is passed through, NOT consumed.)
+  - name: "CapsLock dual-role (tap=Esc, hold=Hyper)"
+    remap:
+      CapsLock:
+        alone: Esc
+        held: CapsLock
+        alone_timeout_millis: 200
+
+keymap:
+  # ── 2. Super → Ctrl : Cmd-style app shortcuts (GUI apps) ───────────────
+  - name: "Super to Ctrl (GUI apps)"
+    exact_match: true
+    application: &gui_only
+      not:
+        - /ghostty/
+        - /kitty/
+        - /foot/
+        - /alacritty/
+        - /wezterm/
+        # ── Games: never apply Mac remaps (Ctrl/Alt/Super are gameplay keys) ──
+        #   Game window classes vary by engine/launcher — no universal prefix:
+        #     - Proton/Steam games:    steam_app_<appid>
+        #     - gamescope-wrapped:     gamescope
+        #     - native Unity (Linux):  <Name>.x86_64   (e.g. Megabonk.x86_64)
+        #     - other native/Proton:   <Name>.exe
+        #   Find a game's class with: hyprctl clients | grep -i class
+        #   NOTE: a game with a bare-name class (e.g. "Hades") won't match these —
+        #   add its exact class here, or flip this denylist into an `only:`
+        #   allowlist for fully robust game exemption.
+        - /steam_app_/
+        - /gamescope/
+        - /\.x86_64$/
+        - /\.exe$/
+    remap:
+      Super-c: Ctrl-c                 # copy
+      Super-v: Ctrl-v                 # paste
+      Super-x: Ctrl-x                 # cut
+      Super-a: Ctrl-a                 # select all
+      Super-z: Ctrl-z                 # undo
+      Super-Shift-z: Ctrl-Shift-z     # redo
+      Super-f: Ctrl-f                 # find
+      Super-r: Ctrl-r                 # reload
+      Super-s: Ctrl-s                 # save
+      Super-t: Ctrl-t                 # new tab
+      Super-Shift-t: Ctrl-Shift-t     # reopen closed tab
+      Super-w: Ctrl-w                 # close tab (Super+Q closes window)
+      Super-n: Ctrl-n                 # new window
+      Super-Shift-p: Ctrl-Shift-p     # private window — ⚠️ BROWSER-DEPENDENT (Firefox=Shift+P, Chrome=Shift+N)
+      Super-p: Ctrl-p                 # print
+      # Cmd+Shift browser/dev shortcuts
+      Super-Shift-b: Ctrl-Shift-b     # toggle bookmarks bar
+      Super-Shift-r: Ctrl-Shift-r     # hard reload
+      Super-Shift-i: Ctrl-Shift-i     # devtools
+      Super-Shift-j: Ctrl-Shift-j     # browser console
+      Super-Shift-c: Ctrl-Shift-c     # inspector / pick element
+      # (Super+L and Super+1..9 are in hyprland.conf — see note above)
+
+  # ── 2b. Terminal copy/paste/reload (Ghostty etc.) ──────────────────────
+  #   Terminals are EXCLUDED from the GUI Super→Ctrl rule above so Ctrl+C stays
+  #   SIGINT. But Cmd+C/V/Shift+R still need to work — so here we map them to the
+  #   terminal's NATIVE chords (which don't touch bare Ctrl+C). xremap sees the
+  #   physical Super before the compositor, so this works even though a raw
+  #   Super+C never survives to Ghostty as a real Super modifier.
+  - name: "Terminal copy/paste/reload (Cmd → native chord)"
+    exact_match: true
+    application:
+      only:
+        - /ghostty/
+        - /kitty/
+        - /foot/
+        - /alacritty/
+        - /wezterm/
+    remap:
+      Super-c: Ctrl-Shift-c            # copy   → ghostty ctrl+shift+c
+      Super-v: Ctrl-Shift-v            # paste  → ghostty ctrl+shift+v
+      Super-Shift-r: Ctrl-Shift-r      # reload → ghostty ctrl+shift+r (bound in ghostty config)
+      # Cmd-style line editing at the shell prompt (readline/zsh chords):
+      Super-Left: Ctrl-a               # jump to start of line  (beginning-of-line)
+      Super-Right: Ctrl-e              # jump to end of line    (end-of-line)
+      Super-Backspace: Ctrl-u          # delete whole line (zsh ^U rebound to kill-whole-line in .zshrc)
+      # Cmd-style terminal app shortcuts → ghostty's native (default) chords:
+      Super-f: Ctrl-Shift-f            # search scrollback   (ghostty start_search)
+      Super-equal: Ctrl-equal          # increase font size  (ghostty ctrl+=)
+      Super-Shift-equal: Ctrl-Shift-equal  # increase font size (Cmd++ variant → ghostty ctrl++)
+      Super-minus: Ctrl-minus          # decrease font size  (ghostty ctrl+-)
+      Super-0: Ctrl-0                  # reset font size     (ghostty ctrl+0)
+
+  # ── 3. Ctrl → emacs-style text navigation (GUI apps) ───────────────────
+  - name: "Ctrl = macOS text bindings (GUI apps)"
+    exact_match: true                 # Ctrl+B→Left, but Ctrl+Shift+B passes through
+    application: *gui_only
+    remap:
+      # macOS Cocoa Ctrl movement/editing (StandardKeyBinding.dict)
+      Ctrl-a: Home                    # line start
+      Ctrl-e: End                     # line end
+      Ctrl-b: Left                    # char left
+      Ctrl-f: Right                   # char right
+      Ctrl-p: Up                      # line up
+      Ctrl-n: Down                    # line down
+      Ctrl-d: Delete                  # forward delete
+      Ctrl-h: Backspace               # delete back
+      Ctrl-k: [Shift-End, Delete]     # kill to end of line (no kill-ring)
+      Ctrl-v: PageDown                # page down (macOS)
+      # Ctrl keys macOS leaves free (commands live on Super) → disabled so they
+      # don't double up the Super shortcuts. Ctrl+Shift+<key> still passes through.
+      Ctrl-c: []                      # (copy = Super+C)
+      Ctrl-x: []                      # (cut = Super+X)
+      Ctrl-z: []                      # (undo = Super+Z)
+      Ctrl-s: []                      # (save = Super+S)
+      Ctrl-r: []                      # (reload = Super+R)
+      Ctrl-w: []                      # (close tab = Super+W)
+      Ctrl-t: []                      # (mac=transpose, not synthesizable; new tab = Super+T)
+      Ctrl-l: []                      # (mac=center; address bar = Super+L)
+      Ctrl-q: []                      # (mac=nothing; close window = Super+Q)
+
+  # ── 4. Cmd line/doc navigation (GUI apps) ──────────────────────────────
+  #   Shift variants listed first so they win matching over the plain ones.
+  - name: "Cmd line/doc nav (GUI apps)"
+    exact_match: true
+    application: *gui_only
+    remap:
+      Super-Shift-Left: Shift-Home    # select to line start
+      Super-Shift-Right: Shift-End    # select to line end
+      Super-Shift-Up: Ctrl-Shift-Home # select to doc top
+      Super-Shift-Down: Ctrl-Shift-End # select to doc bottom
+      Super-Left: Home                # line start
+      Super-Right: End                # line end
+      Super-Up: Ctrl-Home             # document top
+      Super-Down: Ctrl-End            # document bottom
+      Super-Backspace: [Shift-Home, Delete]   # delete to line start
+
+  # ── 5. Option (Alt) word editing (GUI apps) ────────────────────────────
+  #   NOTE: this overrides Alt+Left/Right = browser Back/Forward.
+  #   Alt+Shift+arrow selection is currently eaten by grp:alt_shift_toggle
+  #   (layout switch) — pending a decision on the layout-switch chord.
+  - name: "Option word editing (GUI apps)"
+    exact_match: true
+    application: *gui_only
+    remap:
+      Alt-Shift-Left: Ctrl-Shift-Left   # select word left
+      Alt-Shift-Right: Ctrl-Shift-Right # select word right
+      Alt-Left: Ctrl-Left             # word left
+      Alt-Right: Ctrl-Right           # word right
+      Alt-Backspace: Ctrl-Backspace   # delete word back
+      Alt-Delete: Ctrl-Delete         # delete word forward

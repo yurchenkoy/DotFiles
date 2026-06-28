@@ -1,0 +1,16 @@
+[user]
+	name = Yuriy Y.
+	email = 30913292+yurchenkoy@users.noreply.github.com
+[core]
+	editor = nvim
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

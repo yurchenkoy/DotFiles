@@ -1,0 +1,4 @@
+# ~/.zshrc — entrypoint. OS fragment first (sets plugin-path vars + early env),
+# then the shared bulk which consumes them.
+source "${ZDOTDIR:-$HOME/.config/zsh}/os.zsh"
+source "${ZDOTDIR:-$HOME/.config/zsh}/common.zsh"

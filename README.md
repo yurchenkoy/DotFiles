@@ -1,82 +1,53 @@
 # DotFiles
 
-Personal dotfiles for macOS. Managed with two simple scripts.
+Cross-platform dotfiles (macOS + Linux) managed with two copy-based scripts and an OS-aware
+config-map. One repo provisions either machine after a reinstall or on new hardware.
 
 ## Managed configs
 
-| Tool | Live path |
-|---|---|
-| zsh | `~/.zshrc` |
-| ghostty | `~/Library/Application Support/com.mitchellh.ghostty/config` |
-| lazyvim / nvim | `~/.config/nvim/` |
-| starship | `~/.config/starship.toml` |
-| fsh themes | `~/.config/fsh/` |
-| alfred | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
-| git | `~/.gitconfig` |
-| karabiner | `~/.config/karabiner/karabiner.json` |
-| aerospace | `~/.config/aerospace/aerospace.toml` |
+| Tool | OS | Live path |
+|---|---|---|
+| starship / fsh / nvim | both | `~/.config/...` (common) |
+| zsh | both | `~/.zshrc` → sources `~/.config/zsh/{os,common}.zsh` |
+| ghostty | both | mac: `~/Library/Application Support/com.mitchellh.ghostty/`, linux: `~/.config/ghostty/` |
+| git | both | `~/.gitconfig` → includes `~/.config/git/{common.gitconfig,signing}` |
+| karabiner / aerospace / alfred | macOS | `~/.config/...`, `~/Library/...` |
+| xremap / hyprland / environment.d | Linux | `~/.config/...` |
 
-## First time setup on a new machine
+## First-time setup — macOS
+1. Install Homebrew.
+2. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
+3. `./setup.sh`
+4. `brew bundle --file=packages/Brewfile`
+5. `dotfiles-distribute`
+6. `chmod go-w "$(brew --prefix)/share" "$(brew --prefix)/share/zsh-completions"`
+7. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`). Commits are always signed; until this file exists, commits are blocked (fail-closed).
 
-```zsh
-# 1. Install Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 2. Clone the repo
-git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles
-
-# 3. Run setup (makes scripts executable, symlinks them to ~/.local/bin, cleans stale links)
-cd ~/Documents/DotFiles
-./setup.sh
-
-# 4. Install all dependencies
-brew bundle install
-
-# 5. Apply configs
-dotfiles-distribute
-
-# 6. Give permissions
-chmod go-w "$(brew --prefix)/share/zsh-completions"
-chmod go-w "$(brew --prefix)/share"
-
-# 7. Update theme (optional)
-fast-theme ~/.config/fsh/tokyodark.ini
-```
+## First-time setup — Linux
+1. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
+2. Install packages per `packages/linux-packages.md`.
+3. `./setup.sh` (symlinks scripts, clones zsh plugins, enables ssh-agent, prints manual steps).
+4. `dotfiles-distribute`
+5. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
+6. Finish the printed privileged/manual steps (xremap binary, greetd, KeePassXC, GitHub key).
+7. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`), load the key into KeePassXC/agent, and add the public key to GitHub as a Signing key. Commits are always signed; until this file exists, commits are blocked (fail-closed).
 
 ## Daily workflow
-
-```zsh
-# After editing configs — save to repo
-dotfiles-collect
-git diff                                     # review what changed
-git add -A && git commit -m 'update configs'
-git push
-
-# On another machine — pull and apply
-dotfiles-distribute
+```
+dotfiles-collect        # edit live → save to repo (OS-filtered, diff + confirm)
+git add -A && git commit -m 'update configs' && git push
+dotfiles-distribute     # on the other machine
 ```
 
 ## Commands
-
 | Command | What it does |
 |---|---|
-| `dotfiles-collect` | Select configs interactively, diff, confirm, then copy into repo |
-| `dotfiles-collect --dry-run` | Show selection menu and preview, no writes |
-| `dotfiles-collect --force` | Skip selection menu and confirmation — collect everything |
-| `dotfiles-distribute` | Select configs interactively, diff, confirm, then apply to live locations |
-| `dotfiles-distribute --dry-run` | Show selection menu and preview, no writes |
-| `dotfiles-distribute --force` | Skip selection menu and confirmation — distribute everything |
+| `dotfiles-collect [--dry-run\|--force]` | live → repo |
+| `dotfiles-distribute [--dry-run\|--force]` | repo → live |
 
 ## Adding a new config
+Add one record to `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh`
+(`label|applies|type|repo_path|mac_live|linux_live`), then run `dotfiles-collect`.
 
-Add one entry to the `LABELS`, `SOURCES`, `DESTINATIONS`, and `TYPES` arrays near the top of both
-`scripts/dotfiles-collect` and `scripts/dotfiles-distribute`, following the existing format.
-Then run `dotfiles-collect` to seed it into the repo.
-
-## Regenerating the Brewfile
-
-```zsh
-cd ~/Documents/DotFiles
-brew bundle dump --force
-git add Brewfile && git commit -m 'update Brewfile'
-```
+## Refreshing the Brewfile (macOS)
+`brew bundle dump --force --file=packages/Brewfile`

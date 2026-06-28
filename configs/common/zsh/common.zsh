@@ -1,4 +1,4 @@
-export EDITOR="/opt/homebrew/bin/nvim"
+export EDITOR="nvim"
 export VISUAL="nvim"
 
 # zsh chooses its line-editor keymap from $EDITOR/$VISUAL: because "nvim"
@@ -8,8 +8,11 @@ export VISUAL="nvim"
 # Force emacs-style editing explicitly. (This does not affect nvim as the editor.)
 bindkey -e
 
+# Plugin source paths come from os.zsh ($ZSH_PLUGIN_*); see configs/{linux,macos}/zsh/os.zsh.
+
 # --- Python related ---
-alias python='python3.11'
+# (macOS aliased python -> python3.11; on Fedora the system `python` is 3.14, so
+# no alias is needed.)
 export PATH="$HOME/.local/bin:$PATH"
 WORK_VENVS="$HOME/Documents/PythonEnvs"
 
@@ -35,18 +38,21 @@ activate() {
 alias ls='eza'
 
 # --- Initialize Completions ---
-if type brew &>/dev/null; then
-  FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
-
-  autoload -Uz compinit
-  compinit
-fi
+# zsh-completions ships extra completion functions in its src/ dir; add it to
+# fpath before compinit so they're picked up.
+fpath=("$ZSH_COMPLETIONS_FPATH" $fpath)
+autoload -Uz compinit
+compinit
 
 # Case-insensitive completion (lowercase matches Uppercase)
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}'
 
 # --- Remove / from WORDCHARS (deletion stops at path separators) ---
 WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
+
+# Super+Backspace (xremap → ^U in terminals) deletes the WHOLE line, not just to
+# the start (zsh's default backward-kill-line). Matches the macOS Cmd+Backspace feel.
+bindkey '^U' kill-whole-line
 
 
 # ─────────────────────────────────────────────────────────────
@@ -119,7 +125,7 @@ mi=38;5;210;4:\
 
 
 # --- Load fzf-tab ---
-source "/opt/homebrew/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh"
+source "$ZSH_PLUGIN_FZF_TAB"
 
 # Init zoxide
 eval "$(zoxide init zsh)"   # or bash
@@ -194,7 +200,10 @@ zstyle ':fzf-tab:*' fzf-bindings 'enter:accept'
 eval "$(starship init zsh)"
 
 # ---- Load Fast Syntax Highlighting (must come after FAST_HIGHLIGHT_STYLES) ----
-source "$(brew --prefix)/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+# Persist the custom theme (tokyodark) in a stable XDG dir rather than inside the
+# git-cloned plugin dir, so it survives a plugin re-clone. `fast-theme XDG:tokyodark`
+# reads ~/.config/fsh/tokyodark.ini and writes current_theme.zsh here.
+source "$ZSH_PLUGIN_FSH"
 
 # ─────────────────────────────────────────────────────────────
 # Auto Suggestion Settings
@@ -258,6 +267,6 @@ bindkey '^[[Z' fzf-tab-complete                 # Shift+Tab
 
 
 # ---- Load zsh-autosuggestions (must be last) ----
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source "$ZSH_PLUGIN_AUTOSUGGEST"
 
 export GPG_TTY=$(tty)

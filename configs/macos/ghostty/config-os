@@ -1,0 +1,8 @@
+# macos/ghostty/config-os — macOS-only overrides (loaded after config-base).
+command = /bin/zsh
+macos-titlebar-style = tabs
+keybind = global:alt+space=new_window
+keybind = alt+v=activate_key_table:vim
+macos-titlebar-proxy-icon = hidden
+keybind = super+shift+w=unbind
+keybind = super+s=new_split:down

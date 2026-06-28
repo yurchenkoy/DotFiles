@@ -1,212 +1,67 @@
 #!/usr/bin/env zsh
-# dotfiles-distribute — copy configs FROM the dotfiles repo into live locations
+# dotfiles-distribute — copy configs FROM the repo into live locations (OS-aware).
 # Usage: dotfiles-distribute [--dry-run] [--force]
-
 set -euo pipefail
 
-if [[ -n "${DOTFILES_DIR:-}" ]]; then
-  REPO_DIR="$DOTFILES_DIR"
+if [[ -n "${DOTFILES_DIR:-}" ]]; then REPO_DIR="$DOTFILES_DIR"
 else
   REPO_DIR=$(find "$HOME/Documents" -maxdepth 3 -type d -name "DotFiles" 2>/dev/null | head -1)
-  if [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]]; then
-    echo "  ✖  Could not find DotFiles repo under ~/Documents (depth ≤ 3)."
-    echo "     Set \$DOTFILES_DIR to override."
-    exit 1
-  fi
+  [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]] && { echo "  ✖  DotFiles repo not found; set \$DOTFILES_DIR."; exit 1; }
 fi
-DRY_RUN=0
-FORCE=0
-for arg in "$@"; do
-  [[ "$arg" == "--dry-run" ]] && DRY_RUN=1
-  [[ "$arg" == "--force"   ]] && FORCE=1
-done
+source "$REPO_DIR/scripts/lib/config-map.zsh"
 
-# ── Config map ────────────────────────────────────────────────────────────────
-# Add new entries as a matching quadruplet across all four arrays.
-# type = file | dir
+DRY_RUN=0; FORCE=0
+for a in "$@"; do [[ "$a" == "--dry-run" ]] && DRY_RUN=1; [[ "$a" == "--force" ]] && FORCE=1; done
+YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
+echo "\n${CYAN}═══ dotfiles-distribute ($(df_os)) ════════════════${RESET}"
+[[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN${RESET}"
 
-typeset -a LABELS=(
-  "zsh"
-  "ghostty"
-  "nvim"
-  "starship"
-  "fsh"
-  "alfred"
-  "git"
-  "karabiner"
-  "aerospace"
-)
-
-typeset -a SOURCES=(
-  "configs/zsh/.zshrc"
-  "configs/ghostty/config"
-  "configs/nvim"
-  "configs/starship/starship.toml"
-  "configs/fsh"
-  "configs/alfred/Alfred.alfredpreferences"
-  "configs/git/.gitconfig"
-  "configs/karabiner/karabiner.json"
-  "configs/aerospace/aerospace.toml"
-)
-
-typeset -a DESTINATIONS=(
-  "$HOME/.zshrc"
-  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
-  "$HOME/.config/nvim"
-  "$HOME/.config/starship.toml"
-  "$HOME/.config/fsh"
-  "$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences"
-  "$HOME/.gitconfig"
-  "$HOME/.config/karabiner/karabiner.json"
-  "$HOME/.config/aerospace/aerospace.toml"
-)
-
-typeset -a TYPES=(
-  "file"
-  "file"
-  "dir"
-  "file"
-  "dir"
-  "dir"
-  "file"
-  "file"
-  "file"
-)
-# ──────────────────────────────────────────────────────────────────────────────
-
-RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
-
-echo "\n${CYAN}═══ dotfiles-distribute ═════════════════════════════${RESET}"
-[[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN — nothing will be written${RESET}\n"
-
-# ── Selection menu ────────────────────────────────────────────────────────────
-typeset -A SELECTED_SET=()
-n=${#SOURCES[@]}
-
-if [[ $FORCE -eq 1 ]]; then
-  for i in {1..$n}; do SELECTED_SET[$i]=1; done
+# selection (fzf when available and not --force)
+typeset -A SEL=(); typeset -a LABELS=(); typeset -A LTYPE LREPO LLIVE
+collect_meta(){ LABELS+=("$1"); LTYPE[$1]="$2"; LREPO[$1]="$3"; LLIVE[$1]="$4"; }
+df_each collect_meta
+if [[ $FORCE -eq 1 ]]; then for l in "${LABELS[@]}"; do SEL[$l]=1; done
 elif command -v fzf &>/dev/null; then
-  selected_labels=$(printf '%s\n' "${LABELS[@]}" | fzf \
-    --multi \
-    --height=~60% \
-    --layout=reverse \
-    --border=rounded \
-    --prompt="  distribute > " \
-    --header="Tab·toggle  Ctrl-A·all  Enter·confirm  Esc·cancel" \
-    --color="header:italic,border:cyan,prompt:cyan,marker:green" \
-    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || {
-    echo "  Cancelled.\n"; exit 0
-  }
-  [[ -z "$selected_labels" ]] && echo "  Nothing selected.\n" && exit 0
-  for i in {1..$n}; do
-    if echo "$selected_labels" | grep -qxF "${LABELS[$i]}"; then SELECTED_SET[$i]=1; fi
-  done
-else
-  echo "  ${CYAN}Select what to distribute (space-separated numbers, 'a' or enter for all):${RESET}\n"
-  for i in {1..$n}; do
-    printf "    %2d) %s\n" $i "${LABELS[$i]}"
-  done
-  echo ""
-  echo -n "  > "
-  read -r selection
-  echo ""
+  chosen=$(printf '%s\n' "${LABELS[@]}" | fzf --multi --height=~60% --layout=reverse --border=rounded \
+    --prompt="  distribute > " --header="Tab·toggle Ctrl-A·all Enter·confirm" \
+    --bind="ctrl-a:select-all,ctrl-d:deselect-all") || { echo "  Cancelled."; exit 0; }
+  [[ -z "$chosen" ]] && { echo "  Nothing selected."; exit 0; }
+  while IFS= read -r l; do SEL[$l]=1; done <<< "$chosen"
+else for l in "${LABELS[@]}"; do SEL[$l]=1; done; fi
 
-  selection="${selection//,/ }"
-  if [[ -z "$selection" || "$selection" == "a" ]]; then
-    for i in {1..$n}; do SELECTED_SET[$i]=1; done
-  else
-    for token in ${=selection}; do
-      if [[ "$token" =~ ^[0-9]+$ ]] && (( token >= 1 && token <= n )); then
-        SELECTED_SET[$token]=1
-      fi
-    done
-  fi
-fi
-
-# ── Diff preview ──────────────────────────────────────────────────────────────
-echo "  ${CYAN}Previewing what would change on this machine:${RESET}\n"
+# diff preview
 diff_found=0
-
-for i in {1..$n}; do
-  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
-
-  repo_src="$REPO_DIR/${SOURCES[$i]}"
-  live_dst="${DESTINATIONS[$i]}"
-  kind="${TYPES[$i]}"
-
-  if [[ ! -e "$repo_src" ]]; then
-    echo "  ${YELLOW}⚠${RESET}  Not in repo, skipping: $repo_src"
-    continue
-  fi
-
-  if [[ ! -e "$live_dst" ]]; then
-    echo "  ${GREEN}+${RESET}  New (does not exist yet): $live_dst"
-    diff_found=1
-    continue
-  fi
-
-  if [[ $kind == "file" ]]; then
-    if ! diff -q "$repo_src" "$live_dst" &>/dev/null; then
-      echo "  ${YELLOW}~${RESET}  Changed: $live_dst"
-      diff --unified=2 --color=always "$live_dst" "$repo_src" | sed 's/^/      /' || true
+for l in "${LABELS[@]}"; do
+  [[ -z "${SEL[$l]:-}" ]] && continue
+  src="$REPO_DIR/${LREPO[$l]}"; dst="${LLIVE[$l]}"; kind="${LTYPE[$l]}"
+  [[ ! -e "$src" ]] && { echo "  ${YELLOW}⚠${RESET}  not in repo: $l"; continue; }
+  if [[ ! -e "$dst" ]]; then echo "  ${GREEN}+${RESET}  new: $dst"; diff_found=1; continue; fi
+  if [[ "$kind" == file ]]; then
+    if ! diff -q "$src" "$dst" &>/dev/null; then
+      echo "  ${YELLOW}~${RESET}  changed: $dst"
+      diff --unified=2 --color=always "$dst" "$src" | sed 's/^/      /' || true
       diff_found=1
-    else
-      echo "  ${GREEN}✔${RESET}  Up to date: $live_dst"
-    fi
+    else echo "  ${GREEN}✔${RESET}  up to date: $l"; fi
   else
-    local delta
-    delta=$(rsync -an --delete --out-format="%n" "$repo_src/" "$live_dst/" 2>/dev/null || true)
-    if [[ -n "$delta" ]]; then
-      echo "  ${YELLOW}~${RESET}  Dir has changes: $live_dst"
-      echo "$delta" | sed 's/^/      /'
+    d=$(rsync -an --delete --out-format="%n" "$src/" "$dst/" 2>/dev/null || true)
+    if [[ -n "$d" ]]; then
+      echo "  ${YELLOW}~${RESET}  dir changed: $dst"
+      echo "$d" | sed 's/^/      /'
       diff_found=1
-    else
-      echo "  ${GREEN}✔${RESET}  Up to date: $live_dst"
-    fi
+    else echo "  ${GREEN}✔${RESET}  up to date: $l"; fi
   fi
 done
-
-echo ""
-
-if [[ $diff_found -eq 0 ]]; then
-  echo "  ${GREEN}Everything already up to date. Nothing to do.${RESET}\n"
-  exit 0
-fi
-
+[[ $diff_found -eq 0 ]] && { echo "  ${GREEN}Nothing to do.${RESET}"; exit 0; }
 [[ $DRY_RUN -eq 1 ]] && exit 0
+if [[ $FORCE -eq 0 ]]; then echo -n "  Apply? (y/N) "; read -r r; [[ "$r" != [yY] ]] && { echo "  Cancelled."; exit 0; }; fi
 
-# ── Confirm unless --force ────────────────────────────────────────────────────
-if [[ $FORCE -eq 0 ]]; then
-  echo -n "  Apply these changes? (y/N) "
-  read -r reply
-  [[ "$reply" != "y" && "$reply" != "Y" ]] && echo "  Cancelled.\n" && exit 0
-  echo ""
-fi
-
-# ── Apply ─────────────────────────────────────────────────────────────────────
-changes=0
-for i in {1..$n}; do
-  [[ -z "${SELECTED_SET[$i]:-}" ]] && continue
-
-  repo_src="$REPO_DIR/${SOURCES[$i]}"
-  live_dst="${DESTINATIONS[$i]}"
-  kind="${TYPES[$i]}"
-
-  [[ ! -e "$repo_src" ]] && continue
-
-  if [[ $kind == "dir" ]]; then
-    mkdir -p "$live_dst"
-    rsync -a --delete "$repo_src/" "$live_dst/"
-    echo "  ${GREEN}✔${RESET}  Synced dir:  → $live_dst"
-  else
-    mkdir -p "$(dirname "$live_dst")"
-    cp "$repo_src" "$live_dst"
-    echo "  ${GREEN}✔${RESET}  Copied file: → $live_dst"
-  fi
-  changes=$((changes + 1))
+# apply
+for l in "${LABELS[@]}"; do
+  [[ -z "${SEL[$l]:-}" ]] && continue
+  src="$REPO_DIR/${LREPO[$l]}"; dst="${LLIVE[$l]}"; kind="${LTYPE[$l]}"
+  [[ ! -e "$src" ]] && continue
+  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -a --delete "$src/" "$dst/"
+  else mkdir -p "$(dirname "$dst")"; cp "$src" "$dst"; fi
+  echo "  ${GREEN}✔${RESET}  → $dst"
 done
-
-echo ""
-echo "  ${GREEN}Done.${RESET} $changes item(s) applied."
-echo "  Restart your shell or: source ~/.zshrc"
-echo ""
+echo "  ${GREEN}Done.${RESET} Restart your shell or: source ~/.zshrc"

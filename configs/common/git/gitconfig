@@ -1,0 +1,8 @@
+# Shared, tracked git config (name/email/editor/lfs + always-sign policy).
+[include]
+	path = ~/.config/git/common.gitconfig
+# Per-machine signing identity (key type + key + helpers). NOT tracked — create it
+# from secrets/signing.template. If absent, gpgsign is on but no key → commits are
+# blocked (fail-closed) until you provide your key here.
+[include]
+	path = ~/.config/git/signing.local
