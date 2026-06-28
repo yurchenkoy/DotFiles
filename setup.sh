@@ -45,6 +45,7 @@ else
     systemctl --user enable --now ssh-agent.service 2>/dev/null && echo "  ${GREEN}✔${RESET} ssh-agent.service" || true
   fi
   echo "  ${YELLOW}Run dotfiles-distribute, then finish these steps:${RESET}"
+  echo "    • generate desktop theme colors (required): scripts/theme-apply"
   echo "    • apply fsh theme (regenerates the cache): fast-theme XDG:tokyodark"
   echo "    • install packages per packages/linux-packages.md (dnf/COPR/manual)"
   echo "    • install nerd fonts into ~/.local/share/fonts/ then: fc-cache -f"
