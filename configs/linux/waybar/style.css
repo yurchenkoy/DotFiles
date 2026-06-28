@@ -2,7 +2,7 @@
 @import "colors.css";
 
 * {
-    font-family: "CaskaydiaCove Nerd Font", "JetBrainsMonoNL Nerd Font";
+    font-family: "CaskaydiaCove Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono";
     font-size: 13px;
     min-height: 0;
 }
