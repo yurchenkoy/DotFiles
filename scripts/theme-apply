@@ -29,6 +29,7 @@ mkdir -p "${hypr_out:h}"
 
 # --- hyprlock: $name = rgb(RRGGBB) ---
 hyprlock_out="$HOME/.config/hypr/hyprlock-colors.conf"
+mkdir -p "${hyprlock_out:h}"
 {
   print -r -- "$conf_header"
   for n in $ORDER; do print -r -- "\$$n = rgb(${C[$n]#\#})"; done
