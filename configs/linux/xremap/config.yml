@@ -102,6 +102,9 @@ keymap:
       Super-Left: Ctrl-a               # jump to start of line  (beginning-of-line)
       Super-Right: Ctrl-e              # jump to end of line    (end-of-line)
       Super-Backspace: Ctrl-u          # delete whole line (zsh ^U rebound to kill-whole-line in .zshrc)
+      # Option/Alt word jump at the prompt (readline backward-word / forward-word):
+      Alt-Left: Alt-b                  # jump one word left
+      Alt-Right: Alt-f                 # jump one word right
       # Cmd-style terminal app shortcuts → ghostty's native (default) chords:
       Super-f: Ctrl-Shift-f            # search scrollback   (ghostty start_search)
       Super-equal: Ctrl-equal          # increase font size  (ghostty ctrl+=)
@@ -151,7 +154,7 @@ keymap:
       Super-Right: End                # line end
       Super-Up: Ctrl-Home             # document top
       Super-Down: Ctrl-End            # document bottom
-      Super-Backspace: [Shift-Home, Delete]   # delete to line start
+      Super-Backspace: [Shift-Home, Backspace]   # delete to line start (select to start, then delete)
 
   # ── 5. Option (Alt) word editing (GUI apps) ────────────────────────────
   #   NOTE: this overrides Alt+Left/Right = browser Back/Forward.
