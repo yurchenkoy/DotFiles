@@ -51,3 +51,12 @@ Add one record to `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh`
 
 ## Refreshing the Brewfile (macOS)
 `brew bundle dump --force --file=packages/Brewfile`
+
+### tuigreet theme (privileged)
+
+The login greeting is themed via greetd's config. Edit `/etc/greetd/config.toml` and set the
+greeter `command`'s `--cmd` line to include a TokyoNight `--theme` string and greeting:
+
+    command = "tuigreet --remember --time --greeting 'Welcome back' --theme 'border=blue;text=cyan;prompt=magenta;time=blue;action=blue;button=magenta;container=black;input=white' --cmd Hyprland"
+
+Then restart greetd: `sudo systemctl restart greetd` (this kills the current session — do it from a TTY or on next reboot).
