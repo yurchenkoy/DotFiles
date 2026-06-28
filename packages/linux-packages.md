@@ -26,7 +26,12 @@ how each was obtained on Fedora 44. Adapt per distro.
 | wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
 | keepassxc | `dnf install keepassxc` | SSH agent for git signing |
 | xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
-| hyprland + waybar + mako + hypridle + hyprpaper + wofi | `dnf install` | compositor stack |
+| hyprland + waybar + hyprpaper + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
+| SwayNotificationCenter | `dnf install SwayNotificationCenter` | notifications + history panel (replaces mako) |
+| wlogout | `dnf install wlogout` | power menu grid |
+| grim + slurp + swappy | `dnf install grim slurp swappy` | screenshots + annotate |
+| pavucontrol | `dnf install pavucontrol` | audio control (Waybar audio click) |
+| upower | preinstalled | per-device Bluetooth battery in Waybar |
 | greetd + tuigreet | `dnf install greetd tuigreet` | login |
 
-Skipped vs mac: python@3.11 (system python newer), spotify, caffeine (→ hypridle).
+Skipped vs mac: python@3.11 (system python newer), spotify, caffeine / hypridle (no idle management — declined).
