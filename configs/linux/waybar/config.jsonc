@@ -1,0 +1,70 @@
+// -*- mode: jsonc -*-
+{
+    "include": ["~/.config/waybar/modules-custom.jsonc"],
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 6,
+
+    "modules-left": ["hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": [
+        "tray",
+        "wireplumber",
+        "custom/bluetooth",
+        "network",
+        "custom/gpu",
+        "memory",
+        "hyprland/language",
+        "custom/steam",
+        "custom/notifications",
+        "custom/power"
+    ],
+
+    "hyprland/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": false,
+        "format": "{name}"
+    },
+    "hyprland/window": {
+        "max-length": 60,
+        "separate-outputs": true
+    },
+    "clock": {
+        "format": "{:%a %d %b  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "on-scroll": 1,
+            "format": {
+                "today": "<span color='#7aa2f7'><b>{}</b></span>",
+                "days": "<span color='#c0caf5'>{}</span>",
+                "weekdays": "<span color='#bb9af7'>{}</span>"
+            }
+        },
+        "actions": { "on-scroll-up": "shift_up", "on-scroll-down": "shift_down" }
+    },
+    "tray": { "spacing": 10 },
+    "wireplumber": {
+        "format": "{icon} {volume}%",
+        "format-muted": " ",
+        "format-icons": ["", "", ""],
+        "on-click": "pavucontrol",
+        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-",
+        "max-volume": 150
+    },
+    "network": {
+        "format-wifi": " {essid}",
+        "format-ethernet": " {ifname}",
+        "format-disconnected": "睊",
+        "tooltip-format-wifi": "{ipaddr}/{cidr}  ({signalStrength}%)",
+        "tooltip-format-ethernet": "{ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "ghostty -e nmtui"
+    },
+    "memory": { "format": " {percentage}%", "tooltip-format": "{used:0.1f}G / {total:0.1f}G" },
+    "hyprland/language": {
+        "format": " {short}"
+    }
+}

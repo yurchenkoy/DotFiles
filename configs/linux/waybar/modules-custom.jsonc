@@ -1,0 +1,5 @@
+// Custom module definitions, merged into config.jsonc via "include".
+// Populated by plan Tasks 5 (gpu/bluetooth/steam), 6 (power), 7 (notifications).
+{
+    "custom/placeholder": { "format": "" }
+}

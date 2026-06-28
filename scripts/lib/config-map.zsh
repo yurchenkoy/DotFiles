@@ -36,6 +36,10 @@ typeset -ga DOTFILES_RECORDS=(
   "wallpaper|linux|file|configs/linux/wallpapers/tokyonight.jpg|-|$HOME/Pictures/Wallpapers/tokyonight.jpg"
   # --- ricing: theme source + generator (generated color fragments are derived, not tracked) ---
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
+  # --- waybar ---
+  "waybar-config|linux|file|configs/linux/waybar/config.jsonc|-|$HOME/.config/waybar/config.jsonc"
+  "waybar-modules|linux|file|configs/linux/waybar/modules-custom.jsonc|-|$HOME/.config/waybar/modules-custom.jsonc"
+  "waybar-style|linux|file|configs/linux/waybar/style.css|-|$HOME/.config/waybar/style.css"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record
