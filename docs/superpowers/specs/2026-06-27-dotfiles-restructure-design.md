@@ -58,7 +58,7 @@ DotFiles/
 │   │   ├── fsh/tokyodark.ini
 │   │   ├── nvim/…                     (whole LazyVim tree)
 │   │   ├── zsh/
-│   │   │   ├── zshrc                  # entrypoint: source common.zsh; source os.zsh
+│   │   │   ├── zshrc                  # entrypoint: source os.zsh; source common.zsh
 │   │   │   └── common.zsh             # shared bulk (LS_COLORS, fzf-tab, prj, widgets, zoxide, starship…)
 │   │   ├── ghostty/
 │   │   │   ├── config                 # entrypoint: config-file=config-base; config-file=config-os
@@ -113,7 +113,7 @@ For each of the three dual-OS divergent configs, the file at the app's default p
 
 | App | Entrypoint (common, default path) | Common fragment | OS fragment |
 |---|---|---|---|
-| zsh | `~/.zshrc` → `source ~/.config/zsh/common.zsh` then `source ~/.config/zsh/os.zsh` | `~/.config/zsh/common.zsh` | `~/.config/zsh/os.zsh` |
+| zsh | `~/.zshrc` → `source ~/.config/zsh/os.zsh` then `source ~/.config/zsh/common.zsh` (os first: sets $ZSH_PLUGIN_* vars consumed by common) | `~/.config/zsh/common.zsh` | `~/.config/zsh/os.zsh` |
 | ghostty | `~/.config/ghostty/config` → `config-file = config-base` then `config-file = config-os` | `~/.config/ghostty/config-base` | `~/.config/ghostty/config-os` |
 | git | `~/.gitconfig` → `[include] path = ~/.config/git/common.gitconfig` then `[include] path = ~/.config/git/signing` | `~/.config/git/common.gitconfig` | `~/.config/git/signing` |
 
@@ -210,7 +210,7 @@ zsh-common   | both  | file | configs/common/zsh/common.zsh       | $HOME/.confi
 ghostty-base | both  | file | configs/common/ghostty/config-base  | <mac-ghostty>/config-base             | $HOME/.config/ghostty/config-base
 git-common   | both  | file | configs/common/git/common.gitconfig | $HOME/.config/git/common.gitconfig    | $HOME/.config/git/common.gitconfig
 starship     | both  | file | configs/common/starship/starship.toml | $HOME/.config/starship.toml         | $HOME/.config/starship.toml
-fsh          | both  | dir  | configs/common/fsh                  | $HOME/.config/fsh                     | $HOME/.config/fsh
+fsh          | both  | file | configs/common/fsh/tokyodark.ini    | $HOME/.config/fsh/tokyodark.ini       | $HOME/.config/fsh/tokyodark.ini
 nvim         | both  | dir  | configs/common/nvim                 | $HOME/.config/nvim                    | $HOME/.config/nvim
 # os fragments
 zsh-os       | mac   | file | configs/macos/zsh/os.zsh            | $HOME/.config/zsh/os.zsh              | -

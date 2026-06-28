@@ -8,8 +8,7 @@ export VISUAL="nvim"
 # Force emacs-style editing explicitly. (This does not affect nvim as the editor.)
 bindkey -e
 
-# zsh plugins git-cloned here (fzf-tab, zsh-completions, fast-syntax-highlighting);
-# zsh-autosuggestions comes from the distro package under /usr/share.
+# Plugin source paths come from os.zsh ($ZSH_PLUGIN_*); see configs/{linux,macos}/zsh/os.zsh.
 
 # --- Python related ---
 # (macOS aliased python -> python3.11; on Fedora the system `python` is 3.14, so
@@ -268,6 +267,6 @@ bindkey '^[[Z' fzf-tab-complete                 # Shift+Tab
 
 
 # ---- Load zsh-autosuggestions (must be last) ----
-source $ZSH_PLUGIN_AUTOSUGGEST
+source "$ZSH_PLUGIN_AUTOSUGGEST"
 
 export GPG_TTY=$(tty)
