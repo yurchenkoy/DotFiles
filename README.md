@@ -21,7 +21,7 @@ config-map. One repo provisions either machine after a reinstall or on new hardw
 4. `brew bundle --file=packages/Brewfile`
 5. `dotfiles-distribute`
 6. `chmod go-w "$(brew --prefix)/share" "$(brew --prefix)/share/zsh-completions"`
-7. Place your GPG signing key (see `secrets/signing.template`).
+7. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`). Commits are always signed; until this file exists, commits are blocked (fail-closed).
 
 ## First-time setup — Linux
 1. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
@@ -30,8 +30,7 @@ config-map. One repo provisions either machine after a reinstall or on new hardw
 4. `dotfiles-distribute`
 5. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
 6. Finish the printed privileged/manual steps (xremap binary, greetd, KeePassXC, GitHub key).
-7. Place your SSH signing key (see `secrets/signing.template`) + load it via KeePassXC.
-8. `allowed_signers` (`~/.config/git/allowed_signers`) is machine-local — create it for local signature verification (see `secrets/signing.template`).
+7. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`), load the key into KeePassXC/agent, and add the public key to GitHub as a Signing key. Commits are always signed; until this file exists, commits are blocked (fail-closed).
 
 ## Daily workflow
 ```

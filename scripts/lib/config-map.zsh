@@ -24,8 +24,7 @@ typeset -ga DOTFILES_RECORDS=(
   "zsh-os|linux|file|configs/linux/zsh/os.zsh|-|$HOME/.config/zsh/os.zsh"
   "ghostty-os|mac|file|configs/macos/ghostty/config-os|$HOME/Library/Application Support/com.mitchellh.ghostty/config-os|-"
   "ghostty-os|linux|file|configs/linux/ghostty/config-os|-|$HOME/.config/ghostty/config-os"
-  "git-signing|mac|file|configs/macos/git/signing|$HOME/.config/git/signing|-"
-  "git-signing|linux|file|configs/linux/git/signing|-|$HOME/.config/git/signing"
+  # (git signing identity is per-machine/untracked at ~/.config/git/signing.local — NOT distributed)
   # --- mac-only ---
   "karabiner|mac|file|configs/macos/karabiner/karabiner.json|$HOME/.config/karabiner/karabiner.json|-"
   "aerospace|mac|file|configs/macos/aerospace/aerospace.toml|$HOME/.config/aerospace/aerospace.toml|-"

@@ -1,9 +1,0 @@
-[user]
-	signingkey = 5AAD262109789ACC
-[gpg]
-	format = openpgp
-	program = /opt/homebrew/bin/gpg
-[commit]
-	gpgsign = true
-[tag]
-	gpgsign = true
