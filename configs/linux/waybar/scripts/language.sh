@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
 # Waybar custom/language — current main keyboard layout as an UPPERCASE code.
-# Click toggles collapsed (icon only) <-> expanded (icon + code); see language-toggle.sh.
+# Click the widget to switch layout (see the module's on-click: switchxkblayout).
 set -euo pipefail
 
 ICON=''   # nf-fa-keyboard
-STATE="${XDG_CACHE_HOME:-$HOME/.cache}/waybar/lang-collapsed"
-
-if [[ -f "$STATE" ]]; then
-    printf '%s\n' "$ICON"
-    exit 0
-fi
 
 km=$(hyprctl devices -j 2>/dev/null | python3 -c '
 import sys, json

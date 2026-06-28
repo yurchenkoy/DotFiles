@@ -17,8 +17,8 @@
         "exec": "~/.config/waybar/scripts/language.sh",
         "interval": 2,
         "signal": 7,
-        "tooltip": "Click to show/hide the layout code",
-        "on-click": "~/.config/waybar/scripts/language-toggle.sh"
+        "tooltip": "Click to switch keyboard layout",
+        "on-click": "hyprctl switchxkblayout all next && pkill -RTMIN+7 waybar"
     },
     "custom/notifications": { "format": "" },
     "custom/power": {
