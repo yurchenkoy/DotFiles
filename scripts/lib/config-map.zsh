@@ -42,6 +42,9 @@ typeset -ga DOTFILES_RECORDS=(
   "waybar-style|linux|file|configs/linux/waybar/style.css|-|$HOME/.config/waybar/style.css"
   "waybar-scripts|linux|dir|configs/linux/waybar/scripts|-|$HOME/.config/waybar/scripts"
   "waybar-bt-rename|linux|file|configs/linux/waybar/bluetooth-rename.conf|-|$HOME/.config/waybar/bluetooth-rename.conf"
+  "hyprlock|linux|file|configs/linux/hypr/hyprlock.conf|-|$HOME/.config/hypr/hyprlock.conf"
+  "wlogout-layout|linux|file|configs/linux/wlogout/layout|-|$HOME/.config/wlogout/layout"
+  "wlogout-style|linux|file|configs/linux/wlogout/style.css|-|$HOME/.config/wlogout/style.css"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record

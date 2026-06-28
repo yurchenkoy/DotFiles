@@ -20,5 +20,9 @@
         "on-click": "steam -shutdown"
     },
     "custom/notifications": { "format": "" },
-    "custom/power": { "format": "" }
+    "custom/power": {
+        "format": "⏻",
+        "tooltip": false,
+        "on-click": "wlogout -p layer-shell"
+    }
 }
