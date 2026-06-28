@@ -47,9 +47,12 @@ typeset -ga DOTFILES_RECORDS=(
   "wlogout-style|linux|file|configs/linux/wlogout/style.css|-|$HOME/.config/wlogout/style.css"
   "swaync-config|linux|file|configs/linux/swaync/config.json|-|$HOME/.config/swaync/config.json"
   "swaync-style|linux|file|configs/linux/swaync/style.css|-|$HOME/.config/swaync/style.css"
-  # --- wofi launcher ---
+  # --- wofi launcher (kept; rofi is now the Super+Space launcher) ---
   "wofi-config|linux|file|configs/linux/wofi/config|-|$HOME/.config/wofi/config"
   "wofi-style|linux|file|configs/linux/wofi/style.css|-|$HOME/.config/wofi/style.css"
+  # rofi: file records (NOT a dir — generated colors.rasi shares the live dir; dir+rsync --delete would nuke it)
+  "rofi-config|linux|file|configs/linux/rofi/config.rasi|-|$HOME/.config/rofi/config.rasi"
+  "rofi-launcher|linux|file|configs/linux/rofi/launcher.sh|-|$HOME/.config/rofi/launcher.sh"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record

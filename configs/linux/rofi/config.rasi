@@ -1,0 +1,63 @@
+/* rofi — Spotlight-style TokyoNight launcher. Colors from colors.rasi (theme-apply). */
+@import "colors.rasi"
+
+configuration {
+    matching:      "prefix";
+    case-sensitive: false;
+    show-icons:     true;
+    drun-display-format: "{name}";
+}
+
+* {
+    background-color: transparent;
+    text-color:       @fg;
+    font:             "CaskaydiaCove Nerd Font Mono 13";
+}
+
+window {
+    width:            600px;
+    location:         center;
+    anchor:           center;
+    border:           2px;
+    border-color:     @blue;
+    border-radius:    14px;
+    background-color: @bg-dark;
+    padding:          0px;
+}
+
+mainbox {
+    padding:          12px;
+    spacing:          10px;
+}
+
+inputbar {
+    background-color: @bg-high;
+    border-radius:    10px;
+    padding:          10px 12px;
+    spacing:          8px;
+    children:         [ prompt, entry ];
+}
+
+prompt { text-color: @comment; }
+entry  { text-color: @fg; placeholder: "type for apps · space for folders"; placeholder-color: @comment; }
+
+listview {
+    lines:            8;
+    scrollbar:        false;
+    fixed-height:     false;
+    dynamic:          true;
+}
+
+element {
+    padding:          8px;
+    spacing:          8px;
+    border-radius:    10px;
+    background-color: transparent;
+    text-color:       @fg;
+}
+element selected {
+    background-color: @blue;
+    text-color:       @bg-dark;
+}
+element-icon { size: 22px; }
+element-text { vertical-align: 0.5; }

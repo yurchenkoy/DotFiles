@@ -44,4 +44,15 @@ for css in "$HOME/.config/waybar/colors.css" "$HOME/.config/wofi/colors.css" "$H
   } > "$css"
 done
 
-print -r -- "theme-apply: wrote ${#ORDER} colors to hypr, hyprlock, waybar, wofi, swaync."
+# --- rofi (.rasi): name: #RRGGBB;  in a * {} block, referenced as @name.
+#     rofi's rasi parser rejects underscores in names → translate _ to - (bg_dark → bg-dark). ---
+rofi_out="$HOME/.config/rofi/colors.rasi"
+mkdir -p "${rofi_out:h}"
+{
+  print -r -- "$gen_header"
+  print -r -- "* {"
+  for n in $ORDER; do print -r -- "    ${n//_/-}: ${C[$n]};"; done
+  print -r -- "}"
+} > "$rofi_out"
+
+print -r -- "theme-apply: wrote ${#ORDER} colors to hypr, hyprlock, waybar, wofi, swaync, rofi."
