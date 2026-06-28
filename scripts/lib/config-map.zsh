@@ -40,6 +40,8 @@ typeset -ga DOTFILES_RECORDS=(
   "waybar-config|linux|file|configs/linux/waybar/config.jsonc|-|$HOME/.config/waybar/config.jsonc"
   "waybar-modules|linux|file|configs/linux/waybar/modules-custom.jsonc|-|$HOME/.config/waybar/modules-custom.jsonc"
   "waybar-style|linux|file|configs/linux/waybar/style.css|-|$HOME/.config/waybar/style.css"
+  "waybar-scripts|linux|dir|configs/linux/waybar/scripts|-|$HOME/.config/waybar/scripts"
+  "waybar-bt-rename|linux|file|configs/linux/waybar/bluetooth-rename.conf|-|$HOME/.config/waybar/bluetooth-rename.conf"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record
