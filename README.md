@@ -43,8 +43,8 @@ dotfiles-distribute     # on the other machine
 ## Commands
 | Command | What it does |
 |---|---|
-| `dotfiles-collect [--dry-run|--force]` | live → repo |
-| `dotfiles-distribute [--dry-run|--force]` | repo → live |
+| `dotfiles-collect [--dry-run\|--force]` | live → repo |
+| `dotfiles-distribute [--dry-run\|--force]` | repo → live |
 
 ## Adding a new config
 Add one record to `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh`
