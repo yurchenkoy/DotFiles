@@ -3,6 +3,9 @@
 # Abbreviation: leading alphanumeric run up to first space/symbol, capped 3 chars,
 # overridable via bluetooth-rename.conf (MAC=Label, one per line).
 set -euo pipefail
+
+json_str() { local s="${1//\\/\\\\}"; printf '%s' "${s//\"/\\\"}"; }
+
 RENAME="${HOME}/.config/waybar/bluetooth-rename.conf"
 
 declare -A LABEL
@@ -14,8 +17,12 @@ if [[ -r "$RENAME" ]]; then
 fi
 
 abbrev() {  # $1 = device name -> <=3 char abbreviation
-    local run="${1%%[^A-Za-z0-9]*}"   # leading alphanumeric run
-    [[ -z "$run" ]] && run="$1"
+    local run="${1%%[^A-Za-z0-9]*}"
+    if [[ -z "$run" ]]; then
+        local stripped="${1##[^A-Za-z0-9]}"   # drop one leading symbol
+        run="${stripped%%[^A-Za-z0-9]*}"
+        [[ -z "$run" ]] && run="BT"
+    fi
     printf '%.3s' "$run"
 }
 
@@ -32,8 +39,8 @@ for mac in "${macs[@]:0:3}"; do
         pct=$(upower -i "$updev" | awk '/percentage:/{gsub("%","",$2); print $2; exit}')
         [[ -n "$pct" ]] && batt=" ${pct}%"
     fi
-    parts+=("${short}${batt}")
-    tip+="${name}${batt:+ —${batt}}\n"
+    parts+=("$(json_str "$short")${batt}")
+    tip+="$(json_str "$name")${batt:+ — ${batt# }}\n"
 done
 
 if (( ${#parts[@]} == 0 )); then
