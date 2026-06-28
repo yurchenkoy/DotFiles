@@ -33,6 +33,8 @@ typeset -ga DOTFILES_RECORDS=(
   "xremap|linux|file|configs/linux/xremap/config.yml|-|$HOME/.config/xremap/config.yml"
   "hypr|linux|file|configs/linux/hypr/hyprland.conf|-|$HOME/.config/hypr/hyprland.conf"
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
+  # --- ricing: theme source + generator (generated color fragments are derived, not tracked) ---
+  "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record
