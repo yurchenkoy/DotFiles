@@ -29,7 +29,7 @@ how each was obtained on Fedora 44. Adapt per distro.
 | xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
 | hyprland + waybar + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
 | swaybg | `dnf install swaybg` | wallpaper (replaces hyprpaper, which is broken on Fedora's mixed Hyprland COPRs — see note) |
-| rofi | `dnf install rofi` | Super+Space launcher (prefix matching: apps by default, folders when query starts with a space) |
+| rofi | `dnf install rofi` | Super+Space launcher (prefix matching: apps by default, folders when query starts with `_`) |
 | SwayNotificationCenter | `dnf install SwayNotificationCenter` | notifications + history panel (replaces mako) |
 | wlogout | `dnf install wlogout` | power menu grid |
 | grim + slurp + swappy | `dnf install grim slurp swappy` | screenshots + annotate |

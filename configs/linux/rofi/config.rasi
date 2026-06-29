@@ -1,12 +1,7 @@
-/* rofi — Spotlight-style TokyoNight launcher. Colors from colors.rasi (theme-apply). */
+/* rofi — Spotlight-style TokyoNight launcher. Colors from colors.rasi (theme-apply).
+   Styling only: matching/icons/etc. are set on launcher.sh's rofi command line, because a
+   `configuration {}` block here overrides those command-line flags (e.g. -matching prefix). */
 @import "colors.rasi"
-
-configuration {
-    matching:      "prefix";
-    case-sensitive: false;
-    show-icons:     true;
-    drun-display-format: "{name}";
-}
 
 * {
     background-color: transparent;
@@ -39,7 +34,7 @@ inputbar {
 }
 
 prompt { text-color: @comment; }
-entry  { text-color: @fg; placeholder: "type for apps · space for folders"; placeholder-color: @comment; }
+entry  { text-color: @fg; placeholder: "type for apps · _name for folders"; placeholder-color: @comment; }
 
 listview {
     lines:            8;
