@@ -21,12 +21,20 @@ how each was obtained on Fedora 44. Adapt per distro.
 | zsh-completions | git clone → `~/.local/share/zsh/plugins/zsh-completions` | |
 | fzf-tab | git clone → `~/.local/share/zsh/plugins/fzf-tab` | |
 | fast-syntax-highlighting | git clone → `~/.local/share/zsh/plugins/fast-syntax-highlighting` | |
-| Nerd Fonts | manual → `~/.local/share/fonts/` (JetBrainsMono NL + CaskaydiaCove) | `fc-cache -f` |
+| Nerd Fonts | manual → `~/.local/share/fonts/` (JetBrainsMono NL + CaskaydiaCove **Mono**) | `fc-cache -f` |
+| Symbols Nerd Font | manual → `~/.local/share/fonts/` from nerd-fonts `NerdFontsSymbolsOnly.zip` | full-size Waybar icons; the Mono variants squish glyphs into one cell |
 | ghostty | `dnf install ghostty` | |
 | wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
 | keepassxc | `dnf install keepassxc` | SSH agent for git signing |
 | xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
-| hyprland + waybar + mako + hypridle + hyprpaper + wofi | `dnf install` | compositor stack |
+| hyprland + waybar + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
+| swaybg | `dnf install swaybg` | wallpaper (replaces hyprpaper, which is broken on Fedora's mixed Hyprland COPRs — see note) |
+| rofi | `dnf install rofi` | Super+Space launcher (prefix matching: apps by default, folders when query starts with `_`) |
+| SwayNotificationCenter | `dnf install SwayNotificationCenter` | notifications + history panel (replaces mako) |
+| wlogout | `dnf install wlogout` | power menu grid |
+| grim + slurp + swappy | `dnf install grim slurp swappy` | screenshots + annotate |
+| pavucontrol | `dnf install pavucontrol` | audio control (Waybar audio click) |
+| upower | preinstalled | per-device Bluetooth battery in Waybar |
 | greetd + tuigreet | `dnf install greetd tuigreet` | login |
 
-Skipped vs mac: python@3.11 (system python newer), spotify, caffeine (→ hypridle).
+Skipped vs mac: python@3.11 (system python newer), spotify, caffeine / hypridle (no idle management — declined).

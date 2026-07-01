@@ -1,0 +1,13 @@
+show=drun
+prompt=Search
+width=600
+height=380
+location=center
+always_parse_args=true
+show_all=false
+print_command=true
+insensitive=true
+allow_images=true
+image_size=28
+no_actions=true
+gtk_dark=true

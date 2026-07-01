@@ -10,6 +10,9 @@ else
 fi
 source "$REPO_DIR/scripts/lib/config-map.zsh"
 
+# rsync --exclude args for theme-apply's generated fragments (dir records only)
+typeset -a EXCL=(); for e in "${DOTFILES_DIR_EXCLUDES[@]}"; do EXCL+=(--exclude="$e"); done
+
 DRY_RUN=0; FORCE=0
 for a in "$@"; do [[ "$a" == "--dry-run" ]] && DRY_RUN=1; [[ "$a" == "--force" ]] && FORCE=1; done
 YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
@@ -43,7 +46,7 @@ for l in "${LABELS[@]}"; do
       diff_found=1
     else echo "  ${GREEN}✔${RESET}  up to date: $l"; fi
   else
-    d=$(rsync -an --delete --out-format="%n" "$src/" "$dst/" 2>/dev/null || true)
+    d=$(rsync -ancO --delete "${EXCL[@]}" --out-format="%n" "$src/" "$dst/" 2>/dev/null || true)
     if [[ -n "$d" ]]; then
       echo "  ${YELLOW}~${RESET}  dir changed: $dst"
       echo "$d" | sed 's/^/      /'
@@ -60,7 +63,7 @@ for l in "${LABELS[@]}"; do
   [[ -z "${SEL[$l]:-}" ]] && continue
   src="$REPO_DIR/${LREPO[$l]}"; dst="${LLIVE[$l]}"; kind="${LTYPE[$l]}"
   [[ ! -e "$src" ]] && continue
-  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -a --delete "$src/" "$dst/"
+  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -acO --delete "${EXCL[@]}" "$src/" "$dst/"
   else mkdir -p "$(dirname "$dst")"; cp "$src" "$dst"; fi
   echo "  ${GREEN}✔${RESET}  → $dst"
 done

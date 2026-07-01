@@ -154,7 +154,12 @@ keymap:
       Super-Right: End                # line end
       Super-Up: Ctrl-Home             # document top
       Super-Down: Ctrl-End            # document bottom
-      Super-Backspace: [Shift-Home, Backspace]   # delete to line start (select to start, then delete)
+      # Whole-line delete that also clears a selection: End collapses any selection to the
+      # caret's line, Shift-Home selects that whole line, Backspace deletes it. With no
+      # selection it deletes the whole current line; after Super+A in a single-line field it
+      # clears the field. (A static remap can't branch on selection like macOS, so a multi-line
+      # Super+A selection only clears the focused line — accepted trade-off.)
+      Super-Backspace: [End, Shift-Home, Backspace]
 
   # ── 5. Option (Alt) word editing (GUI apps) ────────────────────────────
   #   NOTE: this overrides Alt+Left/Right = browser Back/Forward.

@@ -1,0 +1,28 @@
+/* wofi — Spotlight-style TokyoNight launcher. */
+@import "colors.css";
+
+window {
+    margin: 0;
+    border: 2px solid @blue;
+    border-radius: 14px;
+    background-color: alpha(@bg_dark, 0.96);
+    font-family: "CaskaydiaCove Nerd Font Mono";
+    font-size: 15px;
+}
+#input {
+    margin: 12px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background-color: @bg_high;
+    color: @fg;
+}
+#input image { color: @comment; }
+#inner-box { margin: 6px 12px 12px 12px; }
+#outer-box { margin: 0; }
+#scroll { margin: 0; }
+#text { color: @fg; margin: 0 8px; }
+#entry { padding: 8px; border-radius: 10px; }
+#entry:selected { background-color: @blue; }
+#entry:selected #text { color: @bg_dark; }
+#entry image { margin-right: 8px; }

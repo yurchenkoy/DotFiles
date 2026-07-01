@@ -1,0 +1,59 @@
+/* Waybar — TokyoNight Storm. Colors from generated colors.css (theme-apply). */
+@import "colors.css";
+
+* {
+    /* "Symbols Nerd Font" FIRST so icon glyphs render full-size (proportional);
+       latin text has no glyphs there and falls through to CaskaydiaCove Mono. */
+    font-family: "Symbols Nerd Font", "CaskaydiaCove Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono";
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: alpha(@bg_dark, 0.92);
+    color: @fg;
+    border-bottom: 1px solid @bg_high;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: @fg;                /* inactive workspace numbers match the clock */
+    background: transparent;
+    border-radius: 6px;
+}
+#workspaces button.active { color: @bg_dark; background: @blue; }
+#workspaces button.urgent { color: @bg_dark; background: @red; }
+#workspaces button:hover  { color: @fg; background: @bg_high; }
+
+#window { color: @fg; margin: 0 6px; }
+.empty #window { background: transparent; }
+
+#clock { color: @fg; font-weight: bold; padding: 0 10px; }
+
+/* right side modules: pill spacing + per-module accent colors */
+#tray,
+#wireplumber,
+#network,
+#memory,
+#custom-language,
+#custom-gpu,
+#custom-bluetooth,
+#custom-notifications,
+#custom-power {
+    padding: 0 8px;
+    margin: 4px 2px;
+    background: @bg_high;
+    border-radius: 6px;
+}
+
+#wireplumber { color: @green; }
+#wireplumber.muted { color: @comment; }
+#custom-bluetooth { color: @blue; }
+#network { color: @cyan; }
+#network.disconnected { color: @red; }
+#custom-gpu { color: @green; }
+#memory { color: @purple; }
+#custom-language { color: @yellow; }
+#custom-notifications { color: @yellow; }
+#custom-notifications.dnd-none.none { color: @comment; }
+#custom-power { color: @red; padding: 0 10px; }

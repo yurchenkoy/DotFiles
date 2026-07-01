@@ -1,0 +1,45 @@
+// Custom module definitions, merged into config.jsonc via "include".
+{
+    "custom/gpu": {
+        "exec": "~/.config/waybar/scripts/gpu-temp.sh",
+        "return-type": "json",
+        "interval": 5,
+        "tooltip": true
+    },
+    "custom/bluetooth": {
+        "exec": "~/.config/waybar/scripts/bluetooth-devices.sh",
+        "return-type": "json",
+        "interval": 10,
+        "tooltip": true,
+        "on-click": "blueman-manager"
+    },
+    "custom/language": {
+        "exec": "~/.config/waybar/scripts/language.sh",
+        "interval": 2,
+        "signal": 7,
+        "tooltip": "Click to switch keyboard layout",
+        "on-click": "hyprctl switchxkblayout all next && pkill -RTMIN+7 waybar"
+    },
+    "custom/notifications": {
+        "exec": "swaync-client -swb",
+        "return-type": "json",
+        "format": "{icon} {text}",
+        "format-icons": {
+            "notification": "<span foreground='#f7768e'><sup></sup></span>",
+            "none": "",
+            "dnd-notification": "<span foreground='#f7768e'><sup></sup></span>",
+            "dnd-none": "",
+            "inhibited-none": "",
+            "dnd-inhibited-none": ""
+        },
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true,
+        "tooltip": "Notifications"
+    },
+    "custom/power": {
+        "format": "⏻",
+        "tooltip": false,
+        "on-click": "wlogout -p layer-shell -b 2 -l $HOME/.config/wlogout/layout -C $HOME/.config/wlogout/style.css"
+    }
+}

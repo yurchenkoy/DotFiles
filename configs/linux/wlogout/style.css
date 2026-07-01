@@ -1,0 +1,22 @@
+* { background-image: none; box-shadow: none; font-family: "CaskaydiaCove Nerd Font Mono"; }
+window { background-color: rgba(31, 35, 53, 0.85); }   /* bg_dark @ 0.85 */
+button {
+    color: #c0caf5;
+    background-color: #292e42;            /* bg_high */
+    border: 2px solid #292e42;
+    border-radius: 12px;
+    margin: 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 28%;
+    font-size: 16px;
+}
+button:focus, button:hover {
+    background-color: #24283b;            /* bg */
+    border: 2px solid #7aa2f7;            /* blue */
+    color: #7aa2f7;
+}
+#lock     { background-image: image(url("/usr/share/wlogout/icons/lock.png")); }
+#suspend  { background-image: image(url("/usr/share/wlogout/icons/suspend.png")); }
+#reboot   { background-image: image(url("/usr/share/wlogout/icons/reboot.png")); }
+#shutdown { background-image: image(url("/usr/share/wlogout/icons/shutdown.png")); }

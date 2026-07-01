@@ -5,6 +5,10 @@
 
 df_os() { [[ "$(uname)" == "Darwin" ]] && print -r -- mac || print -r -- linux }
 
+# theme-apply writes generated color fragments alongside tracked configs in some live dirs.
+# Dir-type collect/distribute must never copy or delete these derived files.
+typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.rasi colors.conf hyprlock-colors.conf)
+
 typeset -ga DOTFILES_RECORDS=(
   # --- common entrypoints (pure includes) ---
   "zshrc|both|file|configs/common/zsh/zshrc|$HOME/.zshrc|$HOME/.zshrc"
@@ -31,8 +35,20 @@ typeset -ga DOTFILES_RECORDS=(
   "alfred|mac|dir|configs/macos/alfred/Alfred.alfredpreferences|$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences|-"
   # --- linux-only ---
   "xremap|linux|file|configs/linux/xremap/config.yml|-|$HOME/.config/xremap/config.yml"
-  "hypr|linux|file|configs/linux/hypr/hyprland.conf|-|$HOME/.config/hypr/hyprland.conf"
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
+  "wallpaper|linux|file|configs/linux/wallpapers/tokyonight.jpg|-|$HOME/Pictures/Wallpapers/tokyonight.jpg"
+  # --- ricing: master palette + one dir per app ---
+  #   theme-apply generates color fragments (colors.css / colors.rasi / colors.conf /
+  #   hyprlock-colors.conf) into these live dirs. They're derived, not tracked; the dir sync
+  #   skips them via DOTFILES_DIR_EXCLUDES so --delete won't nuke them and collect won't pull
+  #   them in. hypr holds hyprland.conf + hyprlock.conf; wofi is kept (rofi is the launcher).
+  "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
+  "hypr|linux|dir|configs/linux/hypr|-|$HOME/.config/hypr"
+  "waybar|linux|dir|configs/linux/waybar|-|$HOME/.config/waybar"
+  "swaync|linux|dir|configs/linux/swaync|-|$HOME/.config/swaync"
+  "wlogout|linux|dir|configs/linux/wlogout|-|$HOME/.config/wlogout"
+  "wofi|linux|dir|configs/linux/wofi|-|$HOME/.config/wofi"
+  "rofi|linux|dir|configs/linux/rofi|-|$HOME/.config/rofi"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record

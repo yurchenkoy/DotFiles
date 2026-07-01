@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# set-wallpaper <image-path> — set the desktop wallpaper via swaybg.
+# Copies the image into the repo-managed slot (~/Pictures/Wallpapers/tokyonight.jpg) so it
+# persists across logout (autostart launches swaybg with that path) and is captured by
+# dotfiles-collect. Then restarts swaybg on all outputs.
+set -euo pipefail
+
+img="${1:?usage: set-wallpaper <image-path>}"
+[[ -r "$img" ]] || { print -u2 "set-wallpaper: cannot read '$img'"; exit 1; }
+
+dest="$HOME/Pictures/Wallpapers/tokyonight.jpg"
+mkdir -p "${dest:h}"
+cp "$img" "$dest"
+
+pkill -x swaybg 2>/dev/null || true
+sleep 0.2
+swaybg -i "$dest" -m fill >/dev/null 2>&1 &
+disown
+
+print "wallpaper set: $img → $dest"
