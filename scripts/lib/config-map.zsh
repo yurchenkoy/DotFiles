@@ -5,6 +5,10 @@
 
 df_os() { [[ "$(uname)" == "Darwin" ]] && print -r -- mac || print -r -- linux }
 
+# theme-apply writes generated color fragments alongside tracked configs in some live dirs.
+# Dir-type collect/distribute must never copy or delete these derived files.
+typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.rasi colors.conf hyprlock-colors.conf)
+
 typeset -ga DOTFILES_RECORDS=(
   # --- common entrypoints (pure includes) ---
   "zshrc|both|file|configs/common/zsh/zshrc|$HOME/.zshrc|$HOME/.zshrc"
@@ -31,28 +35,20 @@ typeset -ga DOTFILES_RECORDS=(
   "alfred|mac|dir|configs/macos/alfred/Alfred.alfredpreferences|$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences|-"
   # --- linux-only ---
   "xremap|linux|file|configs/linux/xremap/config.yml|-|$HOME/.config/xremap/config.yml"
-  "hypr|linux|file|configs/linux/hypr/hyprland.conf|-|$HOME/.config/hypr/hyprland.conf"
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
   "wallpaper|linux|file|configs/linux/wallpapers/tokyonight.jpg|-|$HOME/Pictures/Wallpapers/tokyonight.jpg"
-  # --- ricing: theme source + generator (generated color fragments are derived, not tracked) ---
+  # --- ricing: master palette + one dir per app ---
+  #   theme-apply generates color fragments (colors.css / colors.rasi / colors.conf /
+  #   hyprlock-colors.conf) into these live dirs. They're derived, not tracked; the dir sync
+  #   skips them via DOTFILES_DIR_EXCLUDES so --delete won't nuke them and collect won't pull
+  #   them in. hypr holds hyprland.conf + hyprlock.conf; wofi is kept (rofi is the launcher).
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
-  # --- waybar ---
-  "waybar-config|linux|file|configs/linux/waybar/config.jsonc|-|$HOME/.config/waybar/config.jsonc"
-  "waybar-modules|linux|file|configs/linux/waybar/modules-custom.jsonc|-|$HOME/.config/waybar/modules-custom.jsonc"
-  "waybar-style|linux|file|configs/linux/waybar/style.css|-|$HOME/.config/waybar/style.css"
-  "waybar-scripts|linux|dir|configs/linux/waybar/scripts|-|$HOME/.config/waybar/scripts"
-  "waybar-bt-rename|linux|file|configs/linux/waybar/bluetooth-rename.conf|-|$HOME/.config/waybar/bluetooth-rename.conf"
-  "hyprlock|linux|file|configs/linux/hypr/hyprlock.conf|-|$HOME/.config/hypr/hyprlock.conf"
-  "wlogout-layout|linux|file|configs/linux/wlogout/layout|-|$HOME/.config/wlogout/layout"
-  "wlogout-style|linux|file|configs/linux/wlogout/style.css|-|$HOME/.config/wlogout/style.css"
-  "swaync-config|linux|file|configs/linux/swaync/config.json|-|$HOME/.config/swaync/config.json"
-  "swaync-style|linux|file|configs/linux/swaync/style.css|-|$HOME/.config/swaync/style.css"
-  # --- wofi launcher (kept; rofi is now the Super+Space launcher) ---
-  "wofi-config|linux|file|configs/linux/wofi/config|-|$HOME/.config/wofi/config"
-  "wofi-style|linux|file|configs/linux/wofi/style.css|-|$HOME/.config/wofi/style.css"
-  # rofi: file records (NOT a dir — generated colors.rasi shares the live dir; dir+rsync --delete would nuke it)
-  "rofi-config|linux|file|configs/linux/rofi/config.rasi|-|$HOME/.config/rofi/config.rasi"
-  "rofi-launcher|linux|file|configs/linux/rofi/launcher.sh|-|$HOME/.config/rofi/launcher.sh"
+  "hypr|linux|dir|configs/linux/hypr|-|$HOME/.config/hypr"
+  "waybar|linux|dir|configs/linux/waybar|-|$HOME/.config/waybar"
+  "swaync|linux|dir|configs/linux/swaync|-|$HOME/.config/swaync"
+  "wlogout|linux|dir|configs/linux/wlogout|-|$HOME/.config/wlogout"
+  "wofi|linux|dir|configs/linux/wofi|-|$HOME/.config/wofi"
+  "rofi|linux|dir|configs/linux/rofi|-|$HOME/.config/rofi"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record
