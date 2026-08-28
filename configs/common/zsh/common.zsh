@@ -32,22 +32,67 @@ activate() {
   source "$env_path/bin/activate"
 }
 
+# venv — manage Python virtualenvs under $WORK_VENVS.
+#   venv -c <name>   create        venv -r <name>   remove (with confirm)
+#   venv -l          list          venv -h          help
 venv() {
-  if [ -z "$1" ]; then
-    echo "Usage: venv <env-name>"
-    return 1
-  fi
+  local name="$2"
+  # Reject anything that would escape $WORK_VENVS (slashes, ..).
+  local _bad_name='name must be a bare env name (no / or ..)'
 
-  local env_path="$WORK_VENVS/$1"
+  case "$1" in
+    -l|--list)
+      echo "Root: $WORK_VENVS"
+      local d found=0
+      for d in "$WORK_VENVS"/*(/N); do        # (/) dirs only, (N) no-match => empty
+        [ -f "$d/bin/activate" ] || continue  # only real venvs
+        echo "  ${d:t}"
+        found=1
+      done
+      [ "$found" -eq 0 ] && echo "  (no environments yet)"
+      ;;
 
-  if [ -d "$env_path" ]; then
-    echo "Environment already exists: $env_path"
-    return 1
-  fi
+    -c|--create)
+      [ -z "$name" ] && { echo "Usage: venv -c <env-name>"; return 1; }
+      case "$name" in */*|..) echo "venv: $_bad_name"; return 1;; esac
+      local env_path="$WORK_VENVS/$name"
+      if [ -d "$env_path" ]; then
+        echo "Environment already exists: $env_path"
+        return 1
+      fi
+      mkdir -p "$WORK_VENVS"
+      python3 -m venv "$env_path" || return 1
+      echo "Created $env_path — run: activate $name"
+      ;;
 
-  mkdir -p "$WORK_VENVS"
-  python3 -m venv "$env_path" || return 1
-  echo "Created $env_path — run: activate $1"
+    -r|--remove)
+      [ -z "$name" ] && { echo "Usage: venv -r <env-name>"; return 1; }
+      case "$name" in */*|..) echo "venv: $_bad_name"; return 1;; esac
+      local env_path="$WORK_VENVS/$name"
+      if [ ! -f "$env_path/bin/activate" ]; then
+        echo "Not a virtualenv: $env_path"
+        return 1
+      fi
+      local reply
+      read -r "reply?Remove $env_path? [y/N] "
+      case "$reply" in
+        y|Y) rm -rf "$env_path" && echo "Removed $env_path" ;;
+        *)   echo "Cancelled." ;;
+      esac
+      ;;
+
+    ""|-h|--help)
+      print -r -- "Usage: venv <command>
+  -c, --create <name>   create a new virtualenv
+  -r, --remove <name>   delete an existing virtualenv (asks first)
+  -l, --list            list environments under \$WORK_VENVS"
+      ;;
+
+    *)
+      echo "venv: unknown option '$1' (try: venv -h)"
+      return 1
+      ;;
+  esac
 }
 
 # --- END ---
