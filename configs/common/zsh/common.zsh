@@ -32,6 +32,24 @@ activate() {
   source "$env_path/bin/activate"
 }
 
+venv() {
+  if [ -z "$1" ]; then
+    echo "Usage: venv <env-name>"
+    return 1
+  fi
+
+  local env_path="$WORK_VENVS/$1"
+
+  if [ -d "$env_path" ]; then
+    echo "Environment already exists: $env_path"
+    return 1
+  fi
+
+  mkdir -p "$WORK_VENVS"
+  python3 -m venv "$env_path" || return 1
+  echo "Created $env_path — run: activate $1"
+}
+
 # --- END ---
 
 # --- Aliases ---

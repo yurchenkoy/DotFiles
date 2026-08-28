@@ -9,6 +9,10 @@ echo "\n${CYAN}═══ DotFiles setup ($OS) ═══════════�
 
 # --- shared: symlink scripts (excluding lib/) into ~/.local/bin ---
 mkdir -p "$BIN_DIR"
+
+# --- shared: ensure the Python virtualenv home exists (activate/venv rely on it) ---
+VENV_DIR="$HOME/Documents/PythonEnvs"
+mkdir -p "$VENV_DIR" && echo "  ${GREEN}✔${RESET} python venv home: $VENV_DIR"
 for link in "$BIN_DIR"/*(N); do
   [[ -L "$link" ]] || continue
   [[ "$(readlink "$link")" == "$REPO_DIR"/* && ! -e "$link" ]] && { rm "$link"; echo "  ${YELLOW}✔${RESET} removed stale $(basename "$link")"; }
