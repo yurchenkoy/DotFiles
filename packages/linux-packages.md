@@ -25,7 +25,7 @@ how each was obtained on Fedora 44. Adapt per distro.
 | Symbols Nerd Font | manual → `~/.local/share/fonts/` from nerd-fonts `NerdFontsSymbolsOnly.zip` | full-size Waybar icons; the Mono variants squish glyphs into one cell |
 | ghostty | `dnf install ghostty` | |
 | wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
-| keepassxc | `dnf install keepassxc` | SSH agent for git signing |
+| Proton Pass | download RPM from proton.me → `dnf install ./ProtonPass.rpm` | SSH agent for git signing (paid plan; not Pass Essentials) |
 | xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
 | hyprland + waybar + wofi + hyprlock | `dnf install` | compositor stack (mako dropped, see below) |
 | swaybg | `dnf install swaybg` | wallpaper (replaces hyprpaper, which is broken on Fedora's mixed Hyprland COPRs — see note) |

@@ -45,15 +45,12 @@ else
       echo "  ${YELLOW}⚠${RESET} could not clone $dir"
     fi
   done
-  if command -v systemctl &>/dev/null; then
-    systemctl --user enable --now ssh-agent.service 2>/dev/null && echo "  ${GREEN}✔${RESET} ssh-agent.service" || true
-  fi
   echo "  ${YELLOW}Run dotfiles-distribute, then finish these steps:${RESET}"
   echo "    • generate desktop theme colors (required): scripts/theme-apply"
   echo "    • apply fsh theme (regenerates the cache): fast-theme XDG:tokyodark"
   echo "    • install packages per packages/linux-packages.md (dnf/COPR/manual)"
   echo "    • install nerd fonts into ~/.local/share/fonts/ then: fc-cache -f"
   echo "    • install xremap binary to /usr/local/bin/xremap"
-  echo "    • greetd/tuigreet, KeePassXC SSH-agent setup, GitHub signing key upload"
+  echo "    • greetd/tuigreet, Proton Pass SSH-agent setup, GitHub signing key upload"
 fi
 echo "\n  ${GREEN}Done.${RESET}"

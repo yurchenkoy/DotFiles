@@ -26,12 +26,12 @@ config-map. One repo provisions either machine after a reinstall or on new hardw
 ## First-time setup — Linux
 1. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
 2. Install packages per `packages/linux-packages.md`.
-3. `./setup.sh` (symlinks scripts, clones zsh plugins, enables ssh-agent, prints manual steps).
+3. `./setup.sh` (symlinks scripts, clones zsh plugins, prints manual steps).
 4. `dotfiles-distribute`
 5. `scripts/theme-apply` — generate the TokyoNight color fragments (`colors.conf`/`colors.css`) that every desktop config sources/imports. **Required**: without it Hyprland, Waybar, wofi, swaync and hyprlock come up unthemed (and Hyprland logs a border parse error for the undefined palette vars).
 6. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
-7. Finish the printed privileged/manual steps (xremap binary, greetd, KeePassXC, GitHub key).
-8. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`), load the key into KeePassXC/agent, and add the public key to GitHub as a Signing key. Commits are always signed; until this file exists, commits are blocked (fail-closed).
+7. Finish the printed privileged/manual steps (xremap binary, greetd, Proton Pass, GitHub key).
+8. Set up commit signing: create `~/.config/git/signing.local` with your key (see `secrets/signing.template`), store the private key in Proton Pass and enable its SSH agent, and add the public key to GitHub as a Signing key. Commits are always signed; until this file exists, commits are blocked (fail-closed).
 
 ## Linux desktop (Hyprland — TokyoNight)
 A coherent TokyoNight Storm desktop, all managed by collect/distribute. Components:
