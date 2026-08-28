@@ -7,7 +7,7 @@ df_os() { [[ "$(uname)" == "Darwin" ]] && print -r -- mac || print -r -- linux }
 
 # theme-apply writes generated color fragments alongside tracked configs in some live dirs.
 # Dir-type collect/distribute must never copy or delete these derived files.
-typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.rasi colors.conf hyprlock-colors.conf)
+typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.conf hyprlock-colors.conf)
 
 typeset -ga DOTFILES_RECORDS=(
   # --- common entrypoints (pure includes) ---
@@ -38,17 +38,19 @@ typeset -ga DOTFILES_RECORDS=(
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
   "wallpaper|linux|file|configs/linux/wallpapers/tokyonight.jpg|-|$HOME/Pictures/Wallpapers/tokyonight.jpg"
   # --- ricing: master palette + one dir per app ---
-  #   theme-apply generates color fragments (colors.css / colors.rasi / colors.conf /
+  #   theme-apply generates color fragments (colors.css / colors.conf /
   #   hyprlock-colors.conf) into these live dirs. They're derived, not tracked; the dir sync
   #   skips them via DOTFILES_DIR_EXCLUDES so --delete won't nuke them and collect won't pull
-  #   them in. hypr holds hyprland.conf + hyprlock.conf; wofi is kept (rofi is the launcher).
+  #   them in. hypr holds hyprland.conf + hyprlock.conf. The launcher is vicinae; its
+  #   settings.json lives here, but its generated theme goes to the DATA dir instead
+  #   (~/.local/share/vicinae/themes/tokyonight.toml), so it needs no exclude entry.
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
   "hypr|linux|dir|configs/linux/hypr|-|$HOME/.config/hypr"
   "waybar|linux|dir|configs/linux/waybar|-|$HOME/.config/waybar"
   "swaync|linux|dir|configs/linux/swaync|-|$HOME/.config/swaync"
   "wlogout|linux|dir|configs/linux/wlogout|-|$HOME/.config/wlogout"
-  "wofi|linux|dir|configs/linux/wofi|-|$HOME/.config/wofi"
-  "rofi|linux|dir|configs/linux/rofi|-|$HOME/.config/rofi"
+  "vicinae|linux|dir|configs/linux/vicinae|-|$HOME/.config/vicinae"
+  "vicinae-unit|linux|file|configs/linux/systemd/vicinae-override.conf|-|$HOME/.config/systemd/user/vicinae.service.d/override.conf"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path` for every record
