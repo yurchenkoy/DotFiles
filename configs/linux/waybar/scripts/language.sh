@@ -15,6 +15,7 @@ print(m.get("active_keymap", ""))' 2>/dev/null || true)
 case "$km" in
     *"(US)"*|English*) code="US" ;;
     *Norwegian*|*Norsk*) code="NO" ;;
+    *Russian*|*Русская*) code="RU" ;;
     *) code=$(printf '%s' "${km:0:2}" | tr '[:lower:]' '[:upper:]') ;;
 esac
 
