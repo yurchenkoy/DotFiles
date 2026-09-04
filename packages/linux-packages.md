@@ -61,10 +61,23 @@ syntax error and the click is a no-op. Not fixable from hyprland.lua: Waybar wri
 `.socket.sock` directly, so a `hyprctl` wrapper cannot intercept it, and `workspace 4` fails at
 parse before any Lua name lookup. Waybar has no per-workspace `on-click` to override either.
 Scroll-to-switch IS restored, via `on-scroll-up`/`on-scroll-down` in `configs/linux/waybar/
-config.jsonc` — Waybar delegates to those when set, bypassing its broken path. Upstream issues
-Alexays/Waybar#5008 and #5035 are closed but `master` still emitted the legacy form as of
-2026-08-29; recheck the source, not the issues, before assuming it is fixed. When Waybar does
-fix it, drop those two overrides so the built-in monitor-relative scrolling returns.
+config.jsonc` — Waybar delegates to those when set, bypassing its broken path.
+
+**Fixed upstream on `master`; the gate is now a release, not the code (checked 2026-09-04).**
+`IPC::dispatch` queries `systeminfo`, and on `configProvider: lua` routes through
+`buildLuaDispatch()` to emit `hl.dsp.focus({ workspace = "1" })` — commits `74cf45d5`
+(2026-07-05), `bfd0cfee` (2026-07-30, fixes #5198), `92742e46` (2026-08-05), `0f12de93`
+(2026-08-09). **Check `src/modules/hyprland/backend.cpp`, NOT `workspace.cpp`** — the call sites
+still read `IPC::dispatch("focusworkspaceoncurrentmonitor", ...)` because the translation happens
+a layer below them, so grepping `workspace.cpp` makes a fixed tree look broken. That mistake is
+why this file previously claimed master was still legacy as of 2026-08-29; it had been fixed
+since 2026-07-30.
+
+The blocker is that the latest release, 0.15.0, is from 2026-02-06 — older than every fix commit,
+and what Fedora ships (`waybar-0.15.0-2.fc44`; `dnf list --showduplicates waybar` offers nothing
+newer). So watch releases, not the source: the fix arrives with 0.16.0. On upgrading, drop the
+two `on-scroll-*` overrides so the built-in monitor-relative scrolling returns, and verify by
+clicking a workspace number.
 
 Anything else scripted against `hyprctl dispatch` has the same problem. The new form is
 `hyprctl dispatch 'hl.dsp.focus({ workspace = 3 })'`. Note `hl.dsp.exec_raw("workspace 3")` is
