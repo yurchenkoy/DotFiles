@@ -7,7 +7,7 @@ df_os() { [[ "$(uname)" == "Darwin" ]] && print -r -- mac || print -r -- linux }
 
 # theme-apply writes generated color fragments alongside tracked configs in some live dirs.
 # Dir-type collect/distribute must never copy or delete these derived files.
-typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.conf hyprlock-colors.conf)
+typeset -ga DOTFILES_DIR_EXCLUDES=(colors.css colors.lua colors.conf hyprlock-colors.conf)
 
 typeset -ga DOTFILES_RECORDS=(
   # --- common entrypoints (pure includes) ---
@@ -38,10 +38,13 @@ typeset -ga DOTFILES_RECORDS=(
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
   "wallpaper|linux|file|configs/linux/wallpapers/tokyonight.jpg|-|$HOME/Pictures/Wallpapers/tokyonight.jpg"
   # --- ricing: master palette + one dir per app ---
-  #   theme-apply generates color fragments (colors.css / colors.conf /
+  #   theme-apply generates color fragments (colors.css / colors.lua /
   #   hyprlock-colors.conf) into these live dirs. They're derived, not tracked; the dir sync
   #   skips them via DOTFILES_DIR_EXCLUDES so --delete won't nuke them and collect won't pull
-  #   them in. hypr holds hyprland.conf + hyprlock.conf. The launcher is vicinae; its
+  #   them in. hypr holds hyprland.lua + hyprlock.conf. Hyprland's palette is now a Lua
+  #   module (colors.lua) because the .conf format — and its `source =` — is gone in 0.57;
+  #   hyprlock is a separate binary and still reads hyprlock-colors.conf. colors.conf stays
+  #   in the exclude list only until the legacy hyprland.conf is removed. The launcher is vicinae; its
   #   settings.json lives here, but its generated theme goes to the DATA dir instead
   #   (~/.local/share/vicinae/themes/tokyonight.toml), so it needs no exclude entry.
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"

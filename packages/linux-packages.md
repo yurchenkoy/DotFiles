@@ -39,6 +39,31 @@ how each was obtained on Fedora 44. Adapt per distro.
 
 Skipped vs mac: python@3.11 (system python newer), spotify, caffeine / hypridle (no idle management — declined).
 
+**Hyprland config format: `.conf` → `.lua` (migrated 2026-08-29).** Hyprland 0.56 demoted the
+hyprlang `.conf` format to legacy and removes it entirely in 0.57, so `hyprland.conf` became
+`hyprland.lua`. Consequences worth knowing:
+
+- The palette reaches Hyprland as a Lua module (`colors.lua`, `require("colors")`) instead of
+  `source = colors.conf`. `theme-apply` emits it. hyprlock is a **separate binary** and still
+  parses its own `.conf` — `hyprlock.conf` / `hyprlock-colors.conf` are untouched by this.
+- Validate any edit with `Hyprland --verify-config -c ~/.config/hypr/hyprland.lua`, which parses
+  without starting a compositor. Under a Lua config `hyprctl eval '<lua>'` also works.
+- Switching format needs a full **logout/login**: the config manager is picked at startup, so
+  `hyprctl reload` will NOT move an already-running session from `.conf` to `.lua`.
+- `movetoworkspacesilent` has no Lua equivalent — `silent` is not a valid key and unknown keys
+  are dropped **without an error** when a valid key is present, so the naive port silently
+  follows the window. hyprland.lua restores the previous workspace after the move instead.
+
+Anything else scripted against `hyprctl dispatch` has the same problem. The new form is
+`hyprctl dispatch 'hl.dsp.focus({ workspace = 3 })'`. Note `hl.dsp.exec_raw("workspace 3")` is
+NOT a legacy escape hatch despite being suggested upstream — it tries to exec a binary.
+
+**`hyprland-guiutils` is not packaged in the ashbuk COPR.** Hyprland warns about it at startup.
+It is a soft runtime dep supplying optional Qt dialogs (config-error popup, update/donate
+screens); the compositor is fully functional without it, and nothing else in the COPR or Fedora
+repos provides it. The warning is silenced with `misc.disable_hyprland_guiutils_check = true`
+in hyprland.lua. If you ever want the dialogs, it has to be built from source.
+
 **Launcher history.** rofi (hand-rolled `launcher.sh`), wofi and fuzzel were all removed in favour
 of vicinae. rofi's script rebuilt a full `fd` scan of `$HOME` on every keypress and could only do
 prefix matching in alphabetical order; fuzzel was trialled as the minimal-supply-chain option
@@ -54,6 +79,6 @@ Two things about vicinae are deliberate and easy to undo by accident:
 2. **`layer_shell` is disabled** in `configs/linux/vicinae/settings.json`. As a layer surface,
    vicinae is invisible to xremap (`hyprctl activewindow` keeps reporting the previously focused
    window), so the mac-style Super shortcuts get suppressed inside it. As a regular window it has
-   class `vicinae` and they work. Consequences: blur comes from a `windowrule` in hyprland.conf
+   class `vicinae` and they work. Consequences: blur comes from a `hl.window_rule` in hyprland.lua
    rather than a layerrule, and vicinae is excluded from xremap keymap block 3 so its own Ctrl
    chords (Ctrl+B action panel, Ctrl+P, Ctrl+E/N/D/R/S/X) are not eaten.
