@@ -69,7 +69,8 @@ keymap:
       Super-Shift-t: Ctrl-Shift-t     # reopen closed tab
       Super-w: Ctrl-w                 # close tab (Super+Q closes window)
       Super-n: Ctrl-n                 # new window
-      Super-Shift-p: Ctrl-Shift-p     # private window — ⚠️ BROWSER-DEPENDENT (Firefox=Shift+P, Chrome=Shift+N)
+      Super-Shift-n: Ctrl-Shift-n     # private window — ⚠️ BROWSER-DEPENDENT (Brave/Chrome=Shift+N, Firefox=Shift+P)
+      Super-Shift-p: Ctrl-Shift-p     # command palette (VSCode etc.) — was Firefox's private window
       Super-p: Ctrl-p                 # print
       # Cmd+Shift browser/dev shortcuts
       Super-Shift-b: Ctrl-Shift-b     # toggle bookmarks bar

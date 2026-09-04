@@ -160,12 +160,12 @@ hl.bind(hyper .. " + grave", hl.dsp.workspace.move({ monitor = "+1" }))  -- move
 -- These live here (not xremap) so the compositor can tell Super+key apart from
 -- Caps+Super+key (Hyper+Super). send_shortcut forwards Ctrl+key to the focused app.
 --   Super+L      → Ctrl+L  (focus address bar / clear in terminal)
---   Super+1..9   → Alt+1..9 (browser tab switching)
+--   Super+1..9   → Ctrl+1..9 (browser tab switching)
 hl.bind("SUPER + L", hl.dsp.send_shortcut({ mods = "CTRL", key = "L", window = "activewindow" }))
--- Tab switching → Alt+1..9.  ⚠️ BROWSER-DEPENDENT: this Firefox uses Alt+number
--- (not the standard Ctrl+number) for tabs. If you switch browsers, change ALT→CTRL.
+-- Tab switching → Ctrl+1..9.  ⚠️ BROWSER-DEPENDENT: Brave/Chromium use Ctrl+number.
+-- Firefox uses Alt+number instead — switch CTRL→ALT if you ever go back to it.
 for i = 1, 9 do
-    hl.bind("SUPER + " .. i, hl.dsp.send_shortcut({ mods = "ALT", key = tostring(i), window = "activewindow" }))
+    hl.bind("SUPER + " .. i, hl.dsp.send_shortcut({ mods = "CTRL", key = tostring(i), window = "activewindow" }))
 end
 
 -- power menu (Caps+Super+Esc)
