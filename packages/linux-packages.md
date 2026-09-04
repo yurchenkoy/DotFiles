@@ -54,6 +54,18 @@ hyprlang `.conf` format to legacy and removes it entirely in 0.57, so `hyprland.
   are dropped **without an error** when a valid key is present, so the naive port silently
   follows the window. hyprland.lua restores the previous workspace after the move instead.
 
+**Waybar workspace clicking is broken under the Lua config (upstream bug).** The Lua config
+manager evaluates the IPC `dispatch` command as Lua, so the legacy form Waybar 0.15.0 hardcodes
+(`dispatch focusworkspaceoncurrentmonitor <id>`, in `src/modules/hyprland/workspace.cpp`) is a
+syntax error and the click is a no-op. Not fixable from hyprland.lua: Waybar writes to
+`.socket.sock` directly, so a `hyprctl` wrapper cannot intercept it, and `workspace 4` fails at
+parse before any Lua name lookup. Waybar has no per-workspace `on-click` to override either.
+Scroll-to-switch IS restored, via `on-scroll-up`/`on-scroll-down` in `configs/linux/waybar/
+config.jsonc` — Waybar delegates to those when set, bypassing its broken path. Upstream issues
+Alexays/Waybar#5008 and #5035 are closed but `master` still emitted the legacy form as of
+2026-08-29; recheck the source, not the issues, before assuming it is fixed. When Waybar does
+fix it, drop those two overrides so the built-in monitor-relative scrolling returns.
+
 Anything else scripted against `hyprctl dispatch` has the same problem. The new form is
 `hyprctl dispatch 'hl.dsp.focus({ workspace = 3 })'`. Note `hl.dsp.exec_raw("workspace 3")` is
 NOT a legacy escape hatch despite being suggested upstream — it tries to exec a binary.
