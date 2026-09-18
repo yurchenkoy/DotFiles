@@ -1,5 +1,11 @@
 #!/usr/bin/env zsh
-# dotfiles-collect — copy live configs INTO the repo (OS-aware).
+# dotfiles-collect — pull live configs back INTO the repo.
+#
+# Only `copy`-mode records need this: linked configs are already the repo's own files,
+# so editing them live edits the repo directly and there is nothing to collect. On
+# Linux that currently leaves nothing but the (mac-only) Alfred bundle, so this script
+# is mostly a macOS tool plus the Brewfile refresh.
+#
 # Usage: dotfiles-collect [--dry-run] [--force]
 set -euo pipefail
 
@@ -8,30 +14,45 @@ else
   REPO_DIR=$(find "$HOME/Documents" -maxdepth 3 -type d -name "DotFiles" 2>/dev/null | head -1)
   [[ -z "$REPO_DIR" || ! -f "$REPO_DIR/setup.sh" ]] && { echo "  ✖  DotFiles repo not found; set \$DOTFILES_DIR."; exit 1; }
 fi
+REPO_DIR="${REPO_DIR:A}"
 source "$REPO_DIR/scripts/lib/config-map.zsh"
 
-# rsync --exclude args for theme-apply's generated fragments (dir records only)
-typeset -a EXCL=(); for e in "${DOTFILES_DIR_EXCLUDES[@]}"; do EXCL+=(--exclude="$e"); done
-
 DRY_RUN=0; FORCE=0
-for a in "$@"; do [[ "$a" == "--dry-run" ]] && DRY_RUN=1; [[ "$a" == "--force" ]] && FORCE=1; done
-YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; RESET='\033[0m'
+for a in "$@"; do
+  case "$a" in
+    --dry-run) DRY_RUN=1 ;;
+    --force)   FORCE=1 ;;
+    *) echo "  ✖  unknown flag: $a"; exit 1 ;;
+  esac
+done
+YELLOW='\033[1;33m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; DIM='\033[2m'; RESET='\033[0m'
 echo "\n${CYAN}═══ dotfiles-collect ($(df_os)) ════════════════${RESET}"
 [[ $DRY_RUN -eq 1 ]] && echo "  ${YELLOW}DRY RUN${RESET}"
 
+# copy-mode records only — linked ones are the repo's files already
 typeset -A SEL=(); typeset -a LABELS=(); typeset -A LTYPE LREPO LLIVE
-collect_meta(){ LABELS+=("$1"); LTYPE[$1]="$2"; LREPO[$1]="$3"; LLIVE[$1]="$4"; }
+collect_meta(){ [[ "$5" == copy ]] || return 0; LABELS+=("$1"); LTYPE[$1]="$2"; LREPO[$1]="$3"; LLIVE[$1]="$4"; }
 df_each collect_meta
+
+IS_MAC=0; [[ "$(df_os)" == mac ]] && IS_MAC=1
+if [[ ${#LABELS[@]} -eq 0 && $IS_MAC -eq 0 ]]; then
+  echo "  ${GREEN}Nothing to collect.${RESET} ${DIM}Every record on this OS is linked — edit the repo directly.${RESET}"
+  exit 0
+fi
+
 BREW=0
-if [[ $FORCE -eq 1 ]]; then for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ "$(df_os)" == mac ]] && BREW=1
+if [[ $FORCE -eq 1 ]]; then
+  for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ $IS_MAC -eq 1 ]] && BREW=1
 elif command -v fzf &>/dev/null; then
-  menu=("${LABELS[@]}"); [[ "$(df_os)" == mac ]] && menu+=("Brewfile")
+  menu=("${LABELS[@]}"); [[ $IS_MAC -eq 1 ]] && menu+=("Brewfile")
   chosen=$(printf '%s\n' "${menu[@]}" | fzf --multi --height=~60% --layout=reverse --border=rounded \
     --prompt="  collect > " --header="Tab·toggle Ctrl-A·all Enter·confirm" \
     --bind="ctrl-a:select-all,ctrl-d:deselect-all") || { echo "  Cancelled."; exit 0; }
   [[ -z "$chosen" ]] && { echo "  Nothing selected."; exit 0; }
   while IFS= read -r l; do [[ "$l" == "Brewfile" ]] && BREW=1 || SEL[$l]=1; done <<< "$chosen"
-else for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ "$(df_os)" == mac ]] && BREW=1; fi
+else
+  for l in "${LABELS[@]}"; do SEL[$l]=1; done; [[ $IS_MAC -eq 1 ]] && BREW=1
+fi
 
 diff_found=0
 for l in "${LABELS[@]}"; do
@@ -46,7 +67,7 @@ for l in "${LABELS[@]}"; do
       diff_found=1
     else echo "  ${GREEN}✔${RESET}  up to date: $l"; fi
   else
-    d=$(rsync -ancO --delete "${EXCL[@]}" --out-format="%n" "$live/" "$dst/" 2>/dev/null || true)
+    d=$(rsync -ancO --delete --out-format="%n" "$live/" "$dst/" 2>/dev/null || true)
     if [[ -n "$d" ]]; then
       echo "  ${YELLOW}~${RESET}  dir changed: $l"
       echo "$d" | sed 's/^/      /'
@@ -63,8 +84,8 @@ for l in "${LABELS[@]}"; do
   [[ -z "${SEL[$l]:-}" ]] && continue
   live="${LLIVE[$l]}"; dst="$REPO_DIR/${LREPO[$l]}"; kind="${LTYPE[$l]}"
   [[ ! -e "$live" ]] && continue
-  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -acO --delete "${EXCL[@]}" "$live/" "$dst/"
-  else mkdir -p "$(dirname "$dst")"; cp "$live" "$dst"; fi
+  if [[ "$kind" == dir ]]; then mkdir -p "$dst"; rsync -acO --delete "$live/" "$dst/"
+  else mkdir -p "${dst:h}"; cp "$live" "$dst"; fi
   echo "  ${GREEN}✔${RESET}  $live → $dst"
 done
 [[ $BREW -eq 1 ]] && command -v brew &>/dev/null && { brew bundle dump --force --file="$REPO_DIR/packages/Brewfile"; echo "  ${GREEN}✔${RESET}  Brewfile updated"; }

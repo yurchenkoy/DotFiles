@@ -1,7 +1,8 @@
 # DotFiles
 
-Cross-platform dotfiles (macOS + Linux) managed with two copy-based scripts and an OS-aware
-config-map. One repo provisions either machine after a reinstall or on new hardware.
+Cross-platform dotfiles (macOS + Linux) driven by an OS-aware config-map. Live config paths are
+**symlinks into this repo**, so there is one copy of every file and a repo edit is live
+immediately. One repo provisions either machine after a reinstall or on new hardware.
 
 ## Managed configs
 
@@ -14,6 +15,8 @@ config-map. One repo provisions either machine after a reinstall or on new hardw
 | karabiner / aerospace / alfred | macOS | `~/.config/...`, `~/Library/...` |
 | xremap / environment.d | Linux | `~/.config/...` |
 | hypr / waybar / swaync / wlogout / vicinae | Linux | `~/.config/...` (desktop, see below) |
+
+Every live path above is a symlink into this repo, except records marked `copy` in the map.
 
 The full list is `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh` — that file is the source of
 truth; this table is a summary.
@@ -69,17 +72,33 @@ TTY or on next reboot). Do NOT change `--cmd start-hyprland` to bare `Hyprland`:
 is the wrapper that sets up the session environment.
 
 ## Daily workflow
+Edit the config in this repo — it *is* the live file. Then:
 ```
-dotfiles-collect        # live → repo (OS-filtered, diff + confirm)
 git add -A && git commit -m 'update configs' && git push
-dotfiles-distribute     # repo → live, on the other machine
 ```
-Both take `--dry-run` (print the diff, change nothing) and `--force` (select **every** config,
-skipping both the fzf picker and the confirmation prompt).
+`dotfiles-distribute` only needs re-running after adding a record, or on a fresh machine.
+
+```
+dotfiles-distribute              # link repo → live (idempotent; re-running is a no-op)
+dotfiles-distribute --dry-run    # show what would change, touch nothing
+dotfiles-distribute --force      # every record, no fzf picker, no confirmation
+dotfiles-distribute --prune      # list symlinks into the repo that no record claims
+dotfiles-collect                 # only `copy`-mode records (macOS Alfred) + the Brewfile
+```
+A real file or directory sitting where a symlink belongs is moved to `<path>.bak`, never deleted.
+
+**Linked, not copied.** `copy` mode exists only for apps that save by writing a temp file and
+renaming it over the target, which replaces the symlink with a regular file and silently detaches
+the config from the repo. Alfred's preferences bundle is the one known case. If a tracked file ever
+turns back into a real file after using an app's GUI, that app needs `copy` mode too.
+
+**Generated files.** `theme-apply` writes its colour fragments next to the configs that include
+them — which, with directory symlinks, means inside this repo. They are listed in `.gitignore`.
 
 ## Adding a new config
 Add one record to `DOTFILES_RECORDS` in `scripts/lib/config-map.zsh`
-(`label|applies|type|repo_path|mac_live|linux_live`), then run `dotfiles-collect`.
+(`label|applies|type|repo_path|mac_live|linux_live|mode`, where `mode` defaults to `link`), then
+run `dotfiles-distribute`.
 
 ## Refreshing the Brewfile (macOS)
 `brew bundle dump --force --file=packages/Brewfile`
