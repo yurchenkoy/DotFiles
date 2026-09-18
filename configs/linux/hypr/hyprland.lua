@@ -193,6 +193,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("/usr/local/bin/xremap --watch=config,device " .. home .. "/.config/xremap/config.yml")
     hl.exec_cmd("waybar")
     hl.exec_cmd("mako")
-    hl.exec_cmd("swaybg -i " .. home .. "/Pictures/Wallpapers/tokyonight.jpg -m fill")
+    -- The wallpaper is not tracked, so the slot can legitimately be empty on a fresh
+    -- machine; wallpaper-init picks the image or a solid palette colour. Absolute
+    -- path because Hyprland's exec environment has no ~/.local/bin on $PATH.
+    hl.exec_cmd(home .. "/.local/bin/wallpaper-init")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 end)

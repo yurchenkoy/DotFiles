@@ -1,0 +1,36 @@
+#!/usr/bin/env zsh
+# wallpaper-init — start swaybg for the session.
+#
+# The wallpaper image is not tracked in the repo, so the slot is legitimately empty
+# on a fresh machine. Image present -> use it; slot empty -> paint a solid colour
+# from the master palette, so the desktop is never an undefined surface.
+#
+# Called from hyprland.lua autostart. swaybg is exec'd so Hyprland owns it directly.
+# Usage: wallpaper-init [image-path]   (arg overrides the slot; for testing)
+#
+# Deliberately no `set -e`: a missing slot and a missing palette are both normal
+# paths here, and this must never take the session down with it.
+set -uo pipefail
+
+SLOT="${1:-$HOME/Pictures/Wallpapers/tokyonight.jpg}"
+PALETTE="$HOME/.config/theme/tokyonight.conf"
+FALLBACK_HEX="1f2335"          # bg_dark, if the palette was never deployed
+
+if [[ -r "$PALETTE" ]]; then
+  while IFS='=' read -r name hex; do
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    if [[ "$name" == "bg_dark" ]]; then FALLBACK_HEX="${hex#\#}"; break; fi
+  done < "$PALETTE"
+fi
+
+# One swaybg at a time: a no-op at session start, required when re-invoked.
+pkill -x swaybg 2>/dev/null
+sleep 0.2
+
+if [[ -r "$SLOT" ]]; then
+  exec swaybg -i "$SLOT" -m fill
+else
+  # swaybg(1) 1.2.2: -c takes six hex digits, no '#' and no alpha.
+  print -u2 "wallpaper-init: no image at $SLOT — falling back to #$FALLBACK_HEX"
+  exec swaybg -c "$FALLBACK_HEX" -m solid_color
+fi
