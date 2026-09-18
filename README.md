@@ -41,11 +41,16 @@ truth; this table is a summary.
 8. Set up commit signing — see below.
 
 ## Commit signing
-Commits are always signed, and are **blocked until this is set up** (fail-closed). Create
-`~/.config/git/signing.local` with your key — see `secrets/signing.template`.
+SSH signing on **both** macOS and Linux, with the private key in a Proton Pass vault served by its
+SSH agent. Commits are always signed and are **blocked until this is set up** (fail-closed): the
+repo tracks only the always-sign policy, and you create the per-machine
+`~/.config/git/signing.local` yourself. Full walkthrough in `secrets/signing.template`.
 
-On Linux the private key lives in Proton Pass with its SSH agent enabled; add the public key to
-GitHub as a **Signing** key (not just an Authentication key).
+Add the public key to GitHub as a **Signing** key — its own type; an Authentication key does not
+make commits show as Verified.
+
+If a commit fails with `No private key found for public key …`, Proton Pass is closed or its vault
+is locked. The socket can exist while nothing listens on it. Unlock it; this recurs after reboots.
 
 ## Linux desktop (Hyprland — TokyoNight)
 A coherent TokyoNight Storm desktop, all deployed by symlink. Components:
@@ -102,3 +107,6 @@ run `dotfiles-distribute`.
 
 ## Refreshing the Brewfile (macOS)
 `brew bundle dump --force --file=packages/Brewfile`
+
+Note this **overwrites** the file from what is currently installed, so a manually added entry
+(e.g. `proton-pass`) disappears if that app is not installed on the machine doing the dump.

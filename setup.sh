@@ -28,7 +28,7 @@ if [[ "$OS" == mac ]]; then
   echo "    2. brew bundle --file=$REPO_DIR/packages/Brewfile"
   echo "    3. dotfiles-distribute"
   echo "    4. chmod go-w \"\$(brew --prefix)/share\" \"\$(brew --prefix)/share/zsh-completions\""
-  echo "    5. place your GPG signing key (see secrets/signing.template)"
+  echo "    5. install Proton Pass + set up SSH commit signing (see secrets/signing.template)"
 else
   echo "\n  ${CYAN}Automating unprivileged Linux bootstrap...${RESET}"
   PLUG="$HOME/.local/share/zsh/plugins"; mkdir -p "$PLUG"
@@ -51,6 +51,6 @@ else
   echo "    • install packages per packages/linux-packages.md (dnf/COPR/manual)"
   echo "    • install nerd fonts into ~/.local/share/fonts/ then: fc-cache -f"
   echo "    • install xremap binary to /usr/local/bin/xremap"
-  echo "    • greetd/tuigreet, Proton Pass SSH-agent setup, GitHub signing key upload"
+  echo "    • greetd/tuigreet, a polkit agent, Proton Pass SSH-agent setup, GitHub signing key upload"
 fi
 echo "\n  ${GREEN}Done.${RESET}"
