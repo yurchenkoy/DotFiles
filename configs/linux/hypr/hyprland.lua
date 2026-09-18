@@ -54,7 +54,7 @@ hl.config({
     },
 
     decoration = {
-        rounding = 10,
+        rounding = 0,
         blur = {
             enabled = true,
             size    = 4,
@@ -143,6 +143,7 @@ hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind(hyper .. " + slash", hl.dsp.layout("togglesplit"))  -- flip dwindle split dir for next window
 hl.bind(hyper .. " + comma", hl.dsp.group.toggle())         -- merge/dissolve a tabbed group (accordion-ish)
 hl.bind(hyper .. " + F",     hl.dsp.window.fullscreen())    -- fullscreen (accordion: see movefocus cycling above)
+hl.bind(hyper .. " + Space", hl.dsp.window.float({ action = "toggle" }))  -- float/unfloat (SUPER+Space is vicinae)
 
 -- ── Quick resize (Caps + -/=) — single binds, no resize *mode* ───────────
 hl.bind(hyper .. " + minus", hl.dsp.window.resize({ x = -50, y = -50, relative = true }))
