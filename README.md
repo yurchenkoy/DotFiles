@@ -14,7 +14,7 @@ immediately. One repo provisions either machine after a reinstall or on new hard
 | git | both | `~/.gitconfig` → includes `~/.config/git/{common.gitconfig,signing}` |
 | karabiner / aerospace / alfred | macOS | `~/.config/...`, `~/Library/...` |
 | xremap / environment.d | Linux | `~/.config/...` |
-| hypr / waybar / swaync / wlogout / vicinae | Linux | `~/.config/...` (desktop, see below) |
+| hypr / waybar / mako / fuzzel / wlogout | Linux | `~/.config/...` (desktop, see below) |
 
 Every live path above is a symlink into this repo, except records marked `copy` in the map.
 
@@ -35,9 +35,9 @@ truth; this table is a summary.
 2. Install packages per `packages/linux-packages.md`.
 3. `./setup.sh` (symlinks scripts, clones zsh plugins, prints manual steps).
 4. `dotfiles-distribute`
-5. `scripts/theme-apply` — **required, not cosmetic.** It generates the color fragments every desktop config pulls in. Without it Hyprland does not start at all (`require("colors")` is a hard error when the file is missing), and Waybar, swaync and hyprlock come up unthemed.
+5. `scripts/theme-apply` — **required, not cosmetic.** It generates the color fragments every desktop config pulls in. Without it Hyprland does not start at all (`require("colors")` is a hard error when the file is missing), and Waybar, fuzzel and mako come up unthemed.
 6. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
-7. Finish the printed privileged/manual steps (xremap binary, greetd, Proton Pass, GitHub key).
+7. Finish the printed privileged/manual steps (xremap binary, greetd, a polkit agent, Proton Pass, GitHub key).
 8. Set up commit signing — see below.
 
 ## Commit signing
@@ -48,13 +48,13 @@ On Linux the private key lives in Proton Pass with its SSH agent enabled; add th
 GitHub as a **Signing** key (not just an Authentication key).
 
 ## Linux desktop (Hyprland — TokyoNight)
-A coherent TokyoNight Storm desktop, all managed by collect/distribute. Components:
-- **Theme generator** — `configs/linux/theme/tokyonight.conf` is the master palette; `scripts/theme-apply` templates each app's color fragment (Hyprland `colors.lua`, Waybar/swaync `colors.css`, hyprlock `hyprlock-colors.conf`, vicinae `tokyonight.toml`). Change a hex once, re-run `theme-apply`, everything updates.
-- **Waybar** — mac-menu-bar layout: workspaces + window title, centered clock w/ scrollable calendar, and right-side modules (volume, multi-device Bluetooth w/ battery, network, GPU temp, RAM, language switcher, swaync bell, power). Icons need **Symbols Nerd Font** (the Mono variants squish glyphs); see packages list.
-- **Wallpaper** — `swaybg` (hyprpaper is broken on Fedora's mixed Hyprland COPRs). Swap it with `scripts/set-wallpaper <image>`.
-- **Power** — `hyprlock` (themed lock) + `wlogout` (Lock/Sleep/Reboot/Shutdown), bound to the Waybar power button and `Caps+Super+Esc`. Locking is manual only (no idle daemon).
-- **Notifications** — `swaync` (history + do-not-disturb), replaces mako.
-- **Launcher** — vicinae (`Super+Space`), replacing rofi/wofi/fuzzel. Runs as a user daemon; two of its settings are deliberate and easy to undo by accident — see Desktop notes in `packages/linux-packages.md`.
+A coherent TokyoNight Storm desktop, all deployed by symlink. Components:
+- **Theme generator** — `configs/linux/theme/tokyonight.conf` is the master palette; `scripts/theme-apply` templates each app's color fragment (Hyprland `colors.lua`, Waybar `colors.css`, hyprlock `hyprlock-colors.conf`, fuzzel `colors.ini`, mako `colors`). Change a hex once, re-run `theme-apply`, everything updates.
+- **Waybar** — mac-menu-bar layout: workspaces + window title, centered clock w/ scrollable calendar, and right-side modules (volume, multi-device Bluetooth w/ battery, network, GPU temp, RAM, language switcher, notification bell, power). Icons need **Symbols Nerd Font** (the Mono variants squish glyphs); see packages list.
+- **Wallpaper** — `swaybg`, started by `scripts/wallpaper-init`, which falls back to a solid palette colour when the slot is empty. The image is **not** tracked in this repo; back up `~/Pictures/Wallpapers/` yourself. A picker is planned against hyprpaper on Arch.
+- **Power** — `wlogout` (Lock/Sleep/Reboot/Shutdown), bound to the Waybar power button and `Caps+Super+Esc`. Locking is manual only: there is no idle daemon, and the hyprlock config was removed pending a rebuild on Arch, so `hyprlock` currently runs unthemed.
+- **Notifications** — `mako`, with per-source styling matched on app name (`notify-send -a <name>`). Right-click the Waybar bell for do-not-disturb, middle-click to clear.
+- **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null`; it names any bad key.
 - **Screenshots** — `grim`/`slurp`/`swappy` (`Super+Shift+4` region, `Super+Shift+3` full → `~/Pictures/Screenshots` + clipboard).
 - **Bluetooth labels** — edit `~/.config/waybar/bluetooth-rename.conf` (`MAC=Label`).
 

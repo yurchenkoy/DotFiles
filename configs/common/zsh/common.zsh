@@ -330,6 +330,6 @@ bindkey '^[[Z' fzf-tab-complete                 # Shift+Tab
 
 
 # ---- Load zsh-autosuggestions (must be last) ----
-source "$ZSH_PLUGIN_AUTOSUGGEST"
-
-export GPG_TTY=$(tty)
+# Guarded: the path is distro-dependent (see linux/zsh/os.zsh), and an unguarded
+# source here errors on every single shell start when it is wrong.
+[[ -r "${ZSH_PLUGIN_AUTOSUGGEST:-}" ]] && source "$ZSH_PLUGIN_AUTOSUGGEST"

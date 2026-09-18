@@ -155,9 +155,19 @@ hl.layer_rule({
 
 -- Autostart. xremap must be a Hyprland child to inherit the instance signature.
 hl.on("hyprland.start", function()
-    hl.exec_cmd("/usr/local/bin/xremap --watch=config,device " .. home .. "/.config/xremap/config.yml")
+    -- Resolved at runtime: Fedora installs the binary by hand to /usr/local/bin, Arch's
+    -- package puts it in /usr/bin, and Hyprland's exec PATH does not reliably cover both.
+    hl.exec_cmd("sh -c 'command -v xremap >/dev/null && X=xremap || X=/usr/local/bin/xremap; " ..
+                "exec \"$X\" --watch=config,device " .. home .. "/.config/xremap/config.yml'")
     hl.exec_cmd("waybar")
     hl.exec_cmd("mako")
     hl.exec_cmd(home .. "/.local/bin/wallpaper-init")   -- image, or a solid palette colour
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+    -- First agent that exists wins. hyprpolkitagent is the Arch/first-party one; the
+    -- rest are distro-dependent paths. NOTE: none of these is currently installed on
+    -- this Fedora box, so there is no polkit agent running -- install one.
+    hl.exec_cmd("sh -c 'for a in hyprpolkitagent " ..
+                "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 " ..
+                "/usr/libexec/polkit-gnome-authentication-agent-1 " ..
+                "/usr/libexec/polkit-kde-authentication-agent-1; do " ..
+                "command -v \"$a\" >/dev/null && exec \"$a\"; done'")
 end)

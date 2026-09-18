@@ -1,43 +1,51 @@
 # Linux packages (source of truth — install by hand)
 
-No runnable installer: package names/availability vary by distro. Below is the logical list and
-how each was obtained on Fedora 44. Adapt per distro.
+No runnable installer: names and availability vary by distro. This is the logical list, with the
+Fedora 44 and Arch commands side by side. Fedora was the original target; Arch is the migration
+target, so the Arch column is the one to trust going forward.
 
-| Tool | How (Fedora 44) | Notes |
-|---|---|---|
-| neovim | `dnf install neovim` | |
-| eza | `dnf install eza` | |
-| fd | `dnf install fd-find` | binary is `fd` |
-| fzf | `dnf install fzf` | |
-| ripgrep | `dnf install ripgrep` | usually preinstalled |
-| zoxide | `dnf install zoxide` | |
-| gh | `dnf install gh` | |
-| tree | `dnf install tree` | |
-| git / git-lfs | `dnf install git git-lfs` | |
-| node | `dnf install nodejs24 nodejs24-npm nodejs24-bin` | versioned package |
-| dotnet | `dnf install dotnet-sdk-10.0` | v10 (not 8) |
-| starship | COPR `atim/starship` then `dnf install starship` | not in base repos |
-| zsh-autosuggestions | `dnf install zsh-autosuggestions` | `/usr/share/...` |
-| zsh-completions | git clone → `~/.local/share/zsh/plugins/zsh-completions` | |
-| fzf-tab | git clone → `~/.local/share/zsh/plugins/fzf-tab` | |
-| fast-syntax-highlighting | git clone → `~/.local/share/zsh/plugins/fast-syntax-highlighting` | |
-| Nerd Fonts | manual → `~/.local/share/fonts/` (JetBrainsMono NL + CaskaydiaCove **Mono**) | `fc-cache -f` |
-| Symbols Nerd Font | manual → `~/.local/share/fonts/` from nerd-fonts `NerdFontsSymbolsOnly.zip` | full-size Waybar icons; the Mono variants squish glyphs into one cell |
-| ghostty | `dnf install ghostty` | |
-| wl-clipboard | `dnf install wl-clipboard` | nvim system clipboard |
-| Proton Pass | download RPM from proton.me → `dnf install ./ProtonPass.rpm` | SSH agent for git signing (paid plan; not Pass Essentials) |
-| xremap | prebuilt binary → `/usr/local/bin/xremap` | not packaged |
-| hyprland + waybar + hyprlock | `dnf install` | compositor stack |
-| swaybg | `dnf install swaybg` | wallpaper; replaces hyprpaper, which is broken on Fedora's mixed Hyprland COPRs |
-| vicinae | `dnf copr enable scottames/vicinae` → `dnf install vicinae` | Super+Space launcher. Daemon; started by `exec-once = systemctl --user start vicinae` because `graphical-session.target` never activates without uwsm. See Desktop notes. |
-| SwayNotificationCenter | `dnf install SwayNotificationCenter` | notifications + history panel (replaces mako) |
-| wlogout | `dnf install wlogout` | power menu grid |
-| grim + slurp + swappy | `dnf install grim slurp swappy` | screenshots + annotate |
-| pavucontrol | `dnf install pavucontrol` | audio control (Waybar audio click) |
-| upower | preinstalled | per-device Bluetooth battery in Waybar |
-| greetd + tuigreet | `dnf install greetd tuigreet` | login |
+Arch needs `multilib` uncommented in `/etc/pacman.conf` before Steam, and an AUR helper
+(`paru`/`yay`) for the few AUR rows.
 
-Skipped vs mac: python@3.11 (system python newer), spotify, caffeine / hypridle (no idle management — declined).
+| Tool | Fedora 44 | Arch | Notes |
+|---|---|---|---|
+| neovim | `dnf install neovim` | `pacman -S neovim` | |
+| eza | `dnf install eza` | `pacman -S eza` | |
+| fd | `dnf install fd-find` | `pacman -S fd` | binary is `fd` on both |
+| fzf | `dnf install fzf` | `pacman -S fzf` | |
+| ripgrep | `dnf install ripgrep` | `pacman -S ripgrep` | |
+| zoxide | `dnf install zoxide` | `pacman -S zoxide` | |
+| gh | `dnf install gh` | `pacman -S github-cli` | |
+| tree | `dnf install tree` | `pacman -S tree` | |
+| git / git-lfs | `dnf install git git-lfs` | `pacman -S git git-lfs` | |
+| node | `dnf install nodejs24 nodejs24-npm nodejs24-bin` | `pacman -S nodejs npm` | Fedora versions the package |
+| dotnet | `dnf install dotnet-sdk-10.0` | `pacman -S dotnet-sdk` | v10, not 8 |
+| starship | COPR `atim/starship` | `pacman -S starship` | no third-party repo needed on Arch |
+| zsh-autosuggestions | `dnf install zsh-autosuggestions` | `pacman -S zsh-autosuggestions` | **path differs** — see Desktop notes |
+| zsh-completions | git clone → `~/.local/share/zsh/plugins/` | `pacman -S zsh-completions` | clone works on both |
+| fzf-tab | git clone → `~/.local/share/zsh/plugins/` | AUR `zsh-fzf-tab-git` | |
+| fast-syntax-highlighting | git clone → `~/.local/share/zsh/plugins/` | AUR | |
+| Nerd Fonts | manual → `~/.local/share/fonts/` | `pacman -S ttf-cascadia-code-nerd ttf-jetbrains-mono-nerd` | `fc-cache -f` after a manual drop |
+| Symbols Nerd Font | manual, `NerdFontsSymbolsOnly.zip` | `pacman -S ttf-nerd-fonts-symbols` | full-size Waybar icons; Mono variants squish glyphs |
+| ghostty | `dnf install ghostty` | `pacman -S ghostty` | |
+| wl-clipboard | `dnf install wl-clipboard` | `pacman -S wl-clipboard` | nvim system clipboard |
+| Proton Pass | RPM from proton.me | AUR `proton-pass-bin` | SSH agent for git signing (paid plan) |
+| xremap | prebuilt binary → `/usr/local/bin` | AUR (→ `/usr/bin`) | path resolved at runtime in hyprland.lua |
+| hyprland | COPR `ashbuk` | `pacman -S hyprland` | Arch has it in `extra`, same 0.56.2 |
+| hyprland-guiutils | **unavailable** | `pacman -S hyprland-guiutils` | install on Arch and drop `disable_hyprland_guiutils_check` |
+| polkit agent | *(none installed — see below)* | `pacman -S hyprpolkitagent` | **currently missing on this box** |
+| waybar | `dnf install waybar` | `pacman -S waybar` | both ship 0.15.0; see the workspace-click note |
+| wallpaper | `dnf install swaybg` | `pacman -S hyprpaper` | swaybg only because hyprpaper broke on Fedora's COPRs |
+| fuzzel | `dnf install fuzzel` | `pacman -S fuzzel` | launcher + dmenu, replaced vicinae |
+| mako | `dnf install mako` | `pacman -S mako` | notifications, replaced swaync |
+| hyprlock / hypridle | `dnf install hyprlock` | `pacman -S hyprlock hypridle` | configs rebuilt from scratch on Arch |
+| wlogout | `dnf install wlogout` | AUR `wlogout` | power menu grid |
+| grim + slurp + swappy | `dnf install grim slurp swappy` | `pacman -S grim slurp swappy` | screenshots + annotate |
+| pavucontrol | `dnf install pavucontrol` | `pacman -S pavucontrol` | Waybar audio click |
+| upower | preinstalled | `pacman -S upower` | Bluetooth battery in Waybar |
+| greetd + tuigreet | `dnf install greetd tuigreet` | `pacman -S greetd` + AUR `greetd-tuigreet` | login |
+
+Skipped vs mac: python@3.11 (system python is newer), spotify.
 
 ## Desktop notes
 
@@ -75,8 +83,22 @@ mistake has already been made once.
 A scroll workaround via `on-scroll-up`/`on-scroll-down` existed and was removed deliberately: it
 only masked half the bug and would have to come back out once the real fix lands.
 
-**`hyprland-guiutils` is missing from the ashbuk COPR** — optional Qt dialogs only, nothing else
-provides it. Warning silenced with `misc.disable_hyprland_guiutils_check` in hyprland.lua.
+**`hyprland-guiutils` is missing from the ashbuk COPR** — optional Qt dialogs (config-error popup,
+update screens), nothing else provides it, so the nag is silenced with
+`misc.disable_hyprland_guiutils_check` in hyprland.lua. Arch has it in `extra`: **install it there
+and delete that line**, or you keep suppressing Hyprland's own error dialogs for no reason.
+
+**There is no polkit authentication agent on this box.** The autostart pointed at
+`/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1`, a path that does not exist here — so
+it has been failing silently and GUI privilege prompts never appear. hyprland.lua now walks a
+candidate list instead of one hardcoded path, but a candidate still has to be installed:
+`hyprpolkitagent` on Arch.
+
+**Distro-dependent paths, resolved at runtime rather than hardcoded:** `zsh-autosuggestions` sits
+in `/usr/share/zsh-autosuggestions/` on Fedora and `/usr/share/zsh/plugins/zsh-autosuggestions/` on
+Arch (`linux/zsh/os.zsh` tries both, and `common.zsh` guards the `source` — unguarded it errors on
+every shell start); `xremap` is a hand-placed `/usr/local/bin` binary on Fedora and a packaged
+`/usr/bin` one on Arch.
 
 **fuzzel replaced vicinae** as the launcher (`Super+Space`), and is also the dmenu front-end for
 the `fz-*` wrapper scripts. Things worth knowing before editing `fuzzel.ini`:
