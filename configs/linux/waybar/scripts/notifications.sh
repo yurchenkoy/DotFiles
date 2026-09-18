@@ -5,9 +5,9 @@
 #   class : dnd | unread | none  (styled in style.css)
 set -uo pipefail
 
-# Glyphs as explicit escapes, never literals: a literal nerd-font codepoint gets
-# silently stripped by some editors and heredocs, and the module then renders as
-# an empty slot. U+F0F3 nf-fa-bell, U+F1F6 nf-fa-bell-slash.
+# Codepoints spelled out in this comment on purpose: these are literal nerd-font
+# glyphs, and if a tool ever strips them the module silently renders an empty bar
+# slot with no error. Restore from here. U+F0F3 nf-fa-bell, U+F1F6 nf-fa-bell-slash.
 BELL=$(printf '')
 BELL_OFF=$(printf '')
 
