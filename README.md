@@ -26,7 +26,7 @@ truth; this table is a summary.
 2. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
 3. `./setup.sh`
 4. `brew bundle --file=packages/Brewfile`
-5. `dotfiles-distribute`
+5. `./scripts/dotfiles-distribute`
 6. `chmod go-w "$(brew --prefix)/share" "$(brew --prefix)/share/zsh-completions"`
 7. Set up commit signing — see below.
 
@@ -34,8 +34,8 @@ truth; this table is a summary.
 1. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
 2. Install packages per `packages/linux-packages.md`.
 3. `./setup.sh` (symlinks scripts, clones zsh plugins, prints manual steps).
-4. `dotfiles-distribute`
-5. `scripts/theme-apply` — **required, not cosmetic.** It generates the color fragments every desktop config pulls in. Without it Hyprland does not start at all (`require("colors")` is a hard error when the file is missing), and Waybar, fuzzel and mako come up unthemed.
+4. `./scripts/dotfiles-distribute` — spelled out, because `~/.local/bin` is not on `$PATH` until the shell config it deploys is in place.
+5. `./scripts/theme-apply` — **required, not cosmetic.** It generates the color fragments every desktop config pulls in. Without it Hyprland does not start at all (`require("colors")` is a hard error when the file is missing), and Waybar, fuzzel and mako come up unthemed.
 6. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
 7. Finish the printed privileged/manual steps (xremap binary, greetd, a polkit agent, Proton Pass, GitHub key).
 8. Set up commit signing — see below.

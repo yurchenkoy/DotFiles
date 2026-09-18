@@ -48,9 +48,10 @@ else
   echo "  ${YELLOW}Run dotfiles-distribute, then finish these steps:${RESET}"
   echo "    • generate desktop theme colors (required): scripts/theme-apply"
   echo "    • apply fsh theme (regenerates the cache): fast-theme XDG:tokyodark"
-  echo "    • install packages per packages/linux-packages.md (dnf/COPR/manual)"
-  echo "    • install nerd fonts into ~/.local/share/fonts/ then: fc-cache -f"
-  echo "    • install xremap binary to /usr/local/bin/xremap"
+  echo "    • install packages per packages/linux-packages.md (Fedora and Arch columns)"
+  echo "    • install nerd fonts (packaged on Arch; else manual + fc-cache -f)"
+  echo "    • install xremap (AUR on Arch; else prebuilt binary to /usr/local/bin)"
+  echo "    • optional: a wallpaper at ~/Pictures/Wallpapers/tokyonight.jpg (else a solid colour)"
   echo "    • greetd/tuigreet, a polkit agent, Proton Pass SSH-agent setup, GitHub signing key upload"
 fi
 echo "\n  ${GREEN}Done.${RESET}"
