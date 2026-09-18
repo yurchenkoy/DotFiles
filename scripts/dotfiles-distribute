@@ -43,8 +43,11 @@ if [[ $PRUNE -eq 1 ]]; then
   found=0
   while IFS= read -r link; do
     [[ -n "${CLAIMED[$link]:-}" ]] && continue
-    tgt="${link:A}"
+    # readlink, not :A — a symlink whose target the repo no longer has is exactly
+    # what this is looking for, and :A cannot resolve a broken link.
+    tgt="$(readlink "$link")"
     [[ "$tgt" == "$REPO_DIR"/* ]] || continue
+    [[ -e "$link" ]] || tgt="$tgt (dangling)"
     echo "  ${YELLOW}⚠${RESET}  $link ${DIM}→ ${tgt#$REPO_DIR/}${RESET}"
     found=1
   done < <(find "$HOME/.config" -maxdepth 2 -type l 2>/dev/null; find "$HOME" -maxdepth 1 -type l 2>/dev/null)

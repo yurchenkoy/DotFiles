@@ -51,9 +51,9 @@ typeset -ga DOTFILES_RECORDS=(
   "xremap|linux|file|configs/linux/xremap/config.yml|-|$HOME/.config/xremap/config.yml"
   "environmentd|linux|file|configs/linux/environment.d/ssh-agent.conf|-|$HOME/.config/environment.d/ssh-agent.conf"
   # --- ricing: master palette + one dir per app ---
-  #   theme-apply generates colour fragments (colors.lua / colors.css /
-  #   hyprlock-colors.conf / mako's colors) into these live dirs. Because the dirs are
-  #   symlinks, those files land in the repo and are handled by .gitignore.
+  #   theme-apply generates colour fragments into these live dirs. hypr and waybar are
+  #   dir records, so theirs land in the repo and are handled by .gitignore; fuzzel and
+  #   mako are file records, so theirs stay live-only.
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
   "hypr|linux|dir|configs/linux/hypr|-|$HOME/.config/hypr"
   "waybar|linux|dir|configs/linux/waybar|-|$HOME/.config/waybar"
@@ -62,10 +62,7 @@ typeset -ga DOTFILES_RECORDS=(
   # linked config, so they never enter the repo at all.
   "fuzzel|linux|file|configs/linux/fuzzel/fuzzel.ini|-|$HOME/.config/fuzzel/fuzzel.ini"
   "mako|linux|file|configs/linux/mako/config|-|$HOME/.config/mako/config"
-  "swaync|linux|dir|configs/linux/swaync|-|$HOME/.config/swaync"
   "wlogout|linux|dir|configs/linux/wlogout|-|$HOME/.config/wlogout"
-  "vicinae|linux|dir|configs/linux/vicinae|-|$HOME/.config/vicinae"
-  "vicinae-unit|linux|file|configs/linux/systemd/vicinae-override.conf|-|$HOME/.config/systemd/user/vicinae.service.d/override.conf"
 )
 
 # df_each <callback>: calls `callback label type repo_path live_path mode` for every
