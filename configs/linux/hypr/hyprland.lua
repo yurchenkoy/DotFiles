@@ -126,10 +126,9 @@ for i = 1, 9 do
     hl.bind(hyper .. " + SUPER + " .. i, move_to_workspace_silent(i))
 end
 
--- App launcher — Super+Space. vicinae runs as a daemon (see autostart below), so
--- this only toggles an already-warm window. Fuzzy matching and frecency ranking are
--- vicinae's own; file/folder search is indexed in the background.
-hl.bind("SUPER + Space", hl.dsp.exec_cmd("vicinae toggle"))
+-- App launcher — Super+Space. fuzzel launches cold each time (a few ms) and exits on
+-- selection or focus loss; it is also the dmenu front-end for the fz-* wrappers.
+hl.bind("SUPER + Space", hl.dsp.exec_cmd("fuzzel"))
 
 -- Terminal — Hyper+Return
 hl.bind(hyper .. " + Return", hl.dsp.exec_cmd("ghostty"))
@@ -143,7 +142,7 @@ hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind(hyper .. " + slash", hl.dsp.layout("togglesplit"))  -- flip dwindle split dir for next window
 hl.bind(hyper .. " + comma", hl.dsp.group.toggle())         -- merge/dissolve a tabbed group (accordion-ish)
 hl.bind(hyper .. " + F",     hl.dsp.window.fullscreen())    -- fullscreen (accordion: see movefocus cycling above)
-hl.bind(hyper .. " + Space", hl.dsp.window.float({ action = "toggle" }))  -- float/unfloat (SUPER+Space is vicinae)
+hl.bind(hyper .. " + Space", hl.dsp.window.float({ action = "toggle" }))  -- float/unfloat (SUPER+Space is the launcher)
 
 -- ── Quick resize (Caps + -/=) — single binds, no resize *mode* ───────────
 hl.bind(hyper .. " + minus", hl.dsp.window.resize({ x = -50, y = -50, relative = true }))
@@ -180,33 +179,20 @@ hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd(
 hl.bind("SUPER + SHIFT + 3", hl.dsp.exec_cmd(
     "mkdir -p " .. ssdir .. ' && f="' .. ssdir .. '/$(date +%Y-%m-%d_%H-%M-%S).png" && grim "$f" && wl-copy < "$f"'))
 
--- vicinae runs as a REGULAR window (layer_shell is off in its settings.json, so that
--- xremap can see its class and apply the mac-style Super->Ctrl remaps inside it).
--- That means blur comes from a windowrule, not a layerrule: Hyprland only blurs behind
--- a window that is actually translucent, so the opacity here is what switches blur on.
-hl.window_rule({
-    name    = "vicinae-look",
-    match   = { class = "vicinae" },
-    opacity = 0.90,
+-- fuzzel is a layer-shell surface, so its blur is a LAYER rule, not a window rule.
+-- The namespace is set explicitly in fuzzel.ini; keep the two in sync.
+hl.layer_rule({
+    name  = "fuzzel-blur",
+    match = { namespace = "fuzzel" },
+    blur  = true,
 })
 
--- Autostart
--- xremap as a Hyprland child: inherits HYPRLAND_INSTANCE_SIGNATURE + WAYLAND_DISPLAY
--- so its app-aware (terminal-excluded) remapping works, and it's live the moment
--- the session starts — no systemd graphical-session.target needed. --watch handles
--- the Bluetooth keyboard re-appearing as a new device on reconnect.
---
--- vicinae launcher daemon. Started via systemd (not `vicinae server` directly) so it keeps
--- Restart=always and journalctl logging, and so the tracked drop-in override at
--- ~/.config/systemd/user/vicinae.service.d/override.conf applies (it adds
--- --no-extension-runtime, which kills the bundled node process). It cannot simply be
--- `systemctl --user enable`d: the unit is WantedBy=graphical-session.target, and that
--- target never activates in this no-uwsm session — same reason xremap is an exec-once.
+-- Autostart. xremap must be a Hyprland child so it inherits the instance signature
+-- and WAYLAND_DISPLAY; --watch re-attaches the Bluetooth keyboard on reconnect.
 hl.on("hyprland.start", function()
     hl.exec_cmd("/usr/local/bin/xremap --watch=config,device " .. home .. "/.config/xremap/config.yml")
     hl.exec_cmd("waybar")
-    hl.exec_cmd("swaync")
+    hl.exec_cmd("mako")
     hl.exec_cmd("swaybg -i " .. home .. "/Pictures/Wallpapers/tokyonight.jpg -m fill")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
-    hl.exec_cmd("systemctl --user start vicinae")
 end)

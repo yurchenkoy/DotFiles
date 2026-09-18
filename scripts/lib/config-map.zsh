@@ -57,6 +57,11 @@ typeset -ga DOTFILES_RECORDS=(
   "theme-palette|linux|file|configs/linux/theme/tokyonight.conf|-|$HOME/.config/theme/tokyonight.conf"
   "hypr|linux|dir|configs/linux/hypr|-|$HOME/.config/hypr"
   "waybar|linux|dir|configs/linux/waybar|-|$HOME/.config/waybar"
+  # fuzzel + mako are FILE records, not dir records: theme-apply's generated fragments
+  # (~/.config/{fuzzel/colors.ini,mako/colors}) then sit in a real live dir beside the
+  # linked config, so they never enter the repo at all.
+  "fuzzel|linux|file|configs/linux/fuzzel/fuzzel.ini|-|$HOME/.config/fuzzel/fuzzel.ini"
+  "mako|linux|file|configs/linux/mako/config|-|$HOME/.config/mako/config"
   "swaync|linux|dir|configs/linux/swaync|-|$HOME/.config/swaync"
   "wlogout|linux|dir|configs/linux/wlogout|-|$HOME/.config/wlogout"
   "vicinae|linux|dir|configs/linux/vicinae|-|$HOME/.config/vicinae"

@@ -55,5 +55,6 @@ window#waybar {
 #memory { color: @purple; }
 #custom-language { color: @yellow; }
 #custom-notifications { color: @yellow; }
-#custom-notifications.dnd-none.none { color: @comment; }
+#custom-notifications.none { color: @comment; }
+#custom-notifications.dnd  { color: @purple; }
 #custom-power { color: @red; padding: 0 10px; }

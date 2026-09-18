@@ -21,21 +21,16 @@
         "on-click": "hyprctl switchxkblayout all next && pkill -RTMIN+7 waybar"
     },
     "custom/notifications": {
-        "exec": "swaync-client -swb",
+        "exec": "~/.config/waybar/scripts/notifications.sh",
         "return-type": "json",
-        "format": "{icon} {text}",
-        "format-icons": {
-            "notification": "<span foreground='#f7768e'><sup></sup></span>",
-            "none": "",
-            "dnd-notification": "<span foreground='#f7768e'><sup></sup></span>",
-            "dnd-none": "",
-            "inhibited-none": "",
-            "dnd-inhibited-none": ""
-        },
-        "on-click": "swaync-client -t -sw",
-        "on-click-right": "swaync-client -d -sw",
-        "escape": true,
-        "tooltip": "Notifications"
+        "interval": 5,
+        "signal": 8,
+        "format": "{}",
+        "escape": false,
+        "tooltip": true,
+        "on-click": "makoctl restore && pkill -RTMIN+8 waybar",
+        "on-click-right": "makoctl mode -t do-not-disturb && pkill -RTMIN+8 waybar",
+        "on-click-middle": "makoctl dismiss -a && pkill -RTMIN+8 waybar"
     },
     "custom/power": {
         "format": "⏻",
