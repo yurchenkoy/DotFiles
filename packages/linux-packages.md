@@ -61,11 +61,19 @@ Non-obvious things that cost time to work out. Each one is a decision you can ac
 - `hyprctl binds -j` reports every Lua bind as `dispatcher="__lua"` with an opaque id, so bind
   *actions* cannot be diffed textually. Trigger fields (modmask/key/flags) still can.
 
-**Waybar workspace clicks are dead under the Lua config.** Waybar 0.15.0 sends the legacy dispatch
-string, which the Lua config manager rejects; no config can fix it. Scrolling *is* restored via
-`on-scroll-up`/`on-scroll-down` in `waybar/config.jsonc`. Fixed upstream in `IPC::dispatch`
-(`backend.cpp` — **not** `workspace.cpp`, whose call sites still look legacy) but unreleased:
-0.15.0 (2026-02) predates the fix. Drop the two overrides when 0.16.0 lands.
+**Waybar workspace click and scroll are both dead under the Lua config.** Waybar 0.15.0 sends the
+legacy dispatch string, which the Lua config manager rejects. `Caps+1..9` is the working path.
+
+Fixed upstream in `IPC::dispatch` on 2026-07-30, but **0.16.0 is still unreleased** — 0.15.0
+(2026-02) predates every fix commit, and Arch's `extra/waybar` ships the same 0.15.0. So the fix on
+Arch is `waybar-git` (or a manual build of `master`), not the distro package.
+
+⚠ Verify by *release*, never by grepping the source: the call sites in `workspace.cpp` still read
+as legacy even in a fixed tree, because the translation happens below them in `backend.cpp`. That
+mistake has already been made once.
+
+A scroll workaround via `on-scroll-up`/`on-scroll-down` existed and was removed deliberately: it
+only masked half the bug and would have to come back out once the real fix lands.
 
 **`hyprland-guiutils` is missing from the ashbuk COPR** — optional Qt dialogs only, nothing else
 provides it. Warning silenced with `misc.disable_hyprland_guiutils_check` in hyprland.lua.

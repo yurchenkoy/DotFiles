@@ -20,20 +20,13 @@
         "custom/power"
     ],
 
-    // Scroll-to-switch is overridden here because Waybar 0.15.0 still speaks the legacy
-    // Hyprland dispatcher syntax ("dispatch workspace m+1"), which the Lua config manager
-    // in Hyprland 0.56 rejects as a Lua syntax error — so the built-in handler is a no-op.
-    // Waybar delegates to these commands whenever on-scroll-* is set (workspaces.cpp:
-    // handleScroll -> AModule::handleScroll), bypassing its own broken path.
-    // m±1 (not e±1) matches the built-in behaviour for "all-outputs": false — monitor-relative.
-    // Clicking a workspace number is still broken and NOT fixable from config: that handler
-    // is compiled in, and the module exposes no per-workspace on-click. See Waybar #5008/#5035.
+    // Waybar 0.15.0 speaks the legacy Hyprland dispatcher syntax, which the Lua config
+    // manager rejects, so BOTH click and scroll are no-ops here. Fixed upstream in
+    // IPC::dispatch but unreleased; keyboard binds (Caps+1..9) are the working path.
     "hyprland/workspaces": {
         "disable-scroll": false,
         "all-outputs": false,
-        "format": "{name}",
-        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m-1\" })'",
-        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m+1\" })'"
+        "format": "{name}"
     },
     "hyprland/window": {
         "max-length": 60,
