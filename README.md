@@ -53,13 +53,13 @@ If a commit fails with `No private key found for public key …`, Proton Pass is
 is locked. The socket can exist while nothing listens on it. Unlock it; this recurs after reboots.
 
 ## Linux desktop (Hyprland — TokyoNight)
-A coherent TokyoNight Storm desktop, all deployed by symlink. Components:
-- **Theme generator** — `configs/linux/theme/tokyonight.conf` is the master palette; `scripts/theme-apply` templates each app's color fragment (Hyprland `colors.lua`, Waybar `colors.css`, hyprlock `hyprlock-colors.conf`, fuzzel `colors.ini`, mako `colors`). Change a hex once, re-run `theme-apply`, everything updates.
+TokyoNight Storm, deployed by symlink.
+- **Theme generator** — `configs/linux/theme/tokyonight.conf` is the master palette; `scripts/theme-apply` templates each app's color fragment (Hyprland `colors.lua`, Waybar `colors.css`, hyprlock `hyprlock-colors.conf`, fuzzel `colors.ini`, mako `colors`). Edit one hex, re-run `theme-apply`.
 - **Waybar** — mac-menu-bar layout: workspaces + window title, centered clock w/ scrollable calendar, and right-side modules (volume, multi-device Bluetooth w/ battery, network, GPU temp, RAM, language switcher, notification bell, power). Icons need **Symbols Nerd Font** (the Mono variants squish glyphs); see packages list.
-- **Wallpaper** — `swaybg`, started by `scripts/wallpaper-init`, which falls back to a solid palette colour when the slot is empty. The image is **not** tracked in this repo; back up `~/Pictures/Wallpapers/` yourself. A picker is planned against hyprpaper on Arch.
-- **Power** — `wlogout` (Lock/Sleep/Reboot/Shutdown), bound to the Waybar power button and `Caps+Super+Esc`. Locking is manual only: there is no idle daemon, and the hyprlock config was removed pending a rebuild on Arch, so `hyprlock` currently runs unthemed.
+- **Wallpaper** — `swaybg`, started by `scripts/wallpaper-init`, which falls back to a solid palette colour when the slot is empty. The image is **not** tracked — back up `~/Pictures/Wallpapers/` yourself.
+- **Power** — `wlogout` (Lock/Sleep/Reboot/Shutdown), bound to the Waybar power button and `Caps+Super+Esc`. Locking is manual — no idle daemon, and `hyprlock` runs unthemed until its config is rebuilt.
 - **Notifications** — `mako`, with per-source styling matched on app name (`notify-send -a <name>`). Right-click the Waybar bell for do-not-disturb, middle-click to clear.
-- **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null`; it names any bad key.
+- **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null`. Keys inside the launcher come from its own `[key-bindings]` — xremap cannot see a layer-shell surface.
 - **Screenshots** — `grim`/`slurp`/`swappy` (`Super+Shift+4` region, `Super+Shift+3` full → `~/Pictures/Screenshots` + clipboard).
 - **Bluetooth labels** — edit `~/.config/waybar/bluetooth-rename.conf` (`MAC=Label`).
 
@@ -92,10 +92,10 @@ dotfiles-collect                 # only `copy`-mode records (macOS Alfred) + the
 ```
 A real file or directory sitting where a symlink belongs is moved to `<path>.bak`, never deleted.
 
-**Linked, not copied.** `copy` mode exists only for apps that save by writing a temp file and
-renaming it over the target, which replaces the symlink with a regular file and silently detaches
-the config from the repo. Alfred's preferences bundle is the one known case. If a tracked file ever
-turns back into a real file after using an app's GUI, that app needs `copy` mode too.
+**Linked, not copied.** `copy` mode is only for apps that save by writing a temp file and renaming
+it over the target — that turns the symlink into a real file and detaches it from the repo.
+Alfred's bundle is the known case. If a tracked file ever becomes a real file after using an app's
+GUI, that app needs `copy` too.
 
 **Generated files.** `theme-apply` writes its colour fragments next to the configs that include
 them — which, with directory symlinks, means inside this repo. They are listed in `.gitignore`.

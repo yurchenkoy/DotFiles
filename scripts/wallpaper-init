@@ -1,15 +1,7 @@
 #!/usr/bin/env zsh
-# wallpaper-init — start swaybg for the session.
-#
-# The wallpaper image is not tracked in the repo, so the slot is legitimately empty
-# on a fresh machine. Image present -> use it; slot empty -> paint a solid colour
-# from the master palette, so the desktop is never an undefined surface.
-#
-# Called from hyprland.lua autostart. swaybg is exec'd so Hyprland owns it directly.
-# Usage: wallpaper-init [image-path]   (arg overrides the slot; for testing)
-#
-# Deliberately no `set -e`: a missing slot and a missing palette are both normal
-# paths here, and this must never take the session down with it.
+# wallpaper-init [image] — start swaybg for the session, from hyprland.lua autostart.
+# The image is untracked, so an empty slot is normal: falls back to a palette colour.
+# No `set -e` on purpose — a missing slot must never fail the session.
 set -uo pipefail
 
 SLOT="${1:-$HOME/Pictures/Wallpapers/tokyonight.jpg}"
