@@ -1,6 +1,10 @@
 export EDITOR="nvim"
 export VISUAL="nvim"
 
+# Proton Pass desktop app's SSH agent (serves keys while the vault is unlocked).
+# On Linux environment.d sets this too; the shell is what covers macOS.
+export SSH_AUTH_SOCK="$HOME/.ssh/proton-pass-ssh-agent.sock"
+
 # zsh chooses its line-editor keymap from $EDITOR/$VISUAL: because "nvim"
 # contains the substring "vi", zsh would otherwise default to VI mode at the
 # prompt (main -> viins). That splits editing into insert/command modes, adds an
