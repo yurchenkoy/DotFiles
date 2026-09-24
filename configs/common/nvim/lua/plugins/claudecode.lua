@@ -18,6 +18,22 @@ local function redraw_claude(buf)
   end, 50)
 end
 
+-- True if a vim/nvim process runs under the terminal job, e.g. the external editor
+-- Claude opens on <C-g>. Our terminal-mode keys must pass through to it then.
+local function editor_running(buf)
+  local function has_editor(pid)
+    for _, child in ipairs(vim.api.nvim_get_proc_children(pid)) do
+      local proc = vim.api.nvim_get_proc(child)
+      if (proc and proc.name and proc.name:match("vim$")) or has_editor(child) then
+        return true
+      end
+    end
+    return false
+  end
+  local pid = vim.b[buf].terminal_job_pid
+  return pid ~= nil and has_editor(pid)
+end
+
 return {
   "coder/claudecode.nvim",
   opts = {
@@ -37,21 +53,17 @@ return {
       function()
         local term = require("claudecode.terminal")
         local buf = term.get_active_terminal_bufnr()
-        local win = buf and vim.fn.win_findbuf(buf)[1]
-        -- Focused -> hide.
-        if win and win == vim.api.nvim_get_current_win() then
+        -- Visible -> hide.
+        if buf and #vim.fn.win_findbuf(buf) > 0 then
           term.simple_toggle()
           return
         end
-        -- Hidden/not started -> show. Then focus and jump into the prompt; plain window
+        -- Hidden/not started -> show, focus and jump into the prompt. Plain window
         -- moves (<C-l>) still land in Normal mode because auto_insert = false.
-        local was_hidden = not win
-        if was_hidden then
-          term.simple_toggle()
-        end
+        term.simple_toggle()
         vim.schedule(function()
           buf = term.get_active_terminal_bufnr()
-          win = buf and vim.fn.win_findbuf(buf)[1]
+          local win = buf and vim.fn.win_findbuf(buf)[1]
           if win then
             vim.api.nvim_set_current_win(win)
             vim.cmd("startinsert") -- TermEnter autocmd below redraws Claude
@@ -67,7 +79,10 @@ return {
     vim.api.nvim_create_autocmd("TermOpen", {
       callback = function(ev)
         if vim.api.nvim_buf_get_name(ev.buf):match("claude") then
-          vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = ev.buf, desc = "Terminal normal mode" })
+          -- Both <Esc> and <C-h> pass through untouched while the <C-g> editor is open.
+          vim.keymap.set("t", "<Esc>", function()
+            return editor_running(ev.buf) and "<Esc>" or [[<C-\><C-n>]]
+          end, { buffer = ev.buf, expr = true, desc = "Terminal normal mode" })
           vim.keymap.set("t", "<C-q>", "<Esc>", { buffer = ev.buf, desc = "Send Esc to Claude" })
           -- The inline TUI sometimes draws its prompt a line too high; force a full
           -- redraw every time we enter the prompt (i, a, <leader>ac).
@@ -77,7 +92,9 @@ return {
               redraw_claude(ev.buf)
             end,
           })
-          vim.keymap.set("t", "<C-h>", [[<C-\><C-n><C-w>h]], { buffer = ev.buf, desc = "Go to left window" })
+          vim.keymap.set("t", "<C-h>", function()
+            return editor_running(ev.buf) and "<C-h>" or [[<C-\><C-n><C-w>h]]
+          end, { buffer = ev.buf, expr = true, desc = "Go to left window" })
         end
       end,
     })
