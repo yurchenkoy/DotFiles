@@ -61,7 +61,7 @@ TokyoNight Storm, deployed by symlink.
 - **Notifications** — `mako`, with per-source styling matched on app name (`notify-send -a <name>`). Right-click the Waybar bell for do-not-disturb, middle-click to clear.
 - **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null`. Keys inside the launcher come from its own `[key-bindings]` — xremap cannot see a layer-shell surface.
 - **Screenshots** — `grim`/`slurp`/`swappy` (`Super+Shift+4` region, `Super+Shift+3` full → `~/Pictures/Screenshots` + clipboard).
-- **Bluetooth labels** — edit `~/.config/waybar/bluetooth-rename.conf` (`MAC=Label`).
+- **Bluetooth labels** — Waybar shows each device's alias; rename with `bluetoothctl` → `set-alias <label>` (per machine, stored by BlueZ).
 
 ### tuigreet theme (privileged)
 
