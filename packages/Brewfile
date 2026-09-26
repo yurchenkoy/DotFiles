@@ -28,7 +28,7 @@ cask "claude"
 cask "font-caskaydia-cove-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
 cask "ghostty"
-cask "proton-pass"   # SSH agent for git commit signing — see secrets/signing.template
+cask "proton-pass"   # SSH agent for git commit signing
 cask "karabiner-elements"
 cask "scroll-reverser"
 cask "spotify"

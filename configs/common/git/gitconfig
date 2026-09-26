@@ -1,8 +1,17 @@
-# Shared, tracked git config (name/email/editor/lfs + always-sign policy).
-[include]
-	path = ~/.config/git/common.gitconfig
-# Per-machine signing identity (key type + key + helpers). NOT tracked — create it
-# from secrets/signing.template. If absent, gpgsign is on but no key → commits are
-# blocked (fail-closed) until you provide your key here.
-[include]
-	path = ~/.config/git/signing.local
+# Shared, tracked git config → ~/.config/git/config.
+# Per-machine settings (gh's credential helper, `git config --global`) go to
+# ~/.gitconfig: an untracked plain file, read after this one.
+[user]
+	name = Yuriy Y.
+	email = 30913292+yurchenkoy@users.noreply.github.com
+	signingkey = key::ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEfp5JfBt1t0Cttz5ilvdcnpkaNH5sa0xH+DpVKJmP3G
+[core]
+	editor = nvim
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
+[gpg]
+	format = ssh

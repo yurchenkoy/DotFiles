@@ -2,7 +2,7 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 
 # Proton Pass desktop app's SSH agent (serves keys while the vault is unlocked).
-# On Linux environment.d sets this too; the shell is what covers macOS.
+# This covers terminals on both OSes; on Linux, hyprland.lua sets it for GUI apps.
 export SSH_AUTH_SOCK="$HOME/.ssh/proton-pass-ssh-agent.sock"
 
 # zsh chooses its line-editor keymap from $EDITOR/$VISUAL: because "nvim"

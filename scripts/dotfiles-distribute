@@ -8,6 +8,9 @@
 # Re-running is a no-op. A real file or directory sitting where a symlink belongs is
 # moved aside to <path>.bak rather than deleted — this runs against a live desktop.
 #
+# --prune deletes symlinks that point into the repo but that no record claims
+# (left over when a record is removed or moved). It never touches real files.
+#
 # Usage: dotfiles-distribute [--dry-run] [--force] [--prune]
 set -euo pipefail
 
@@ -36,11 +39,13 @@ typeset -A SEL=(); typeset -a LABELS=(); typeset -A LTYPE LREPO LLIVE LMODE
 collect_meta(){ LABELS+=("$1"); LTYPE[$1]="$2"; LREPO[$1]="$3"; LLIVE[$1]="$4"; LMODE[$1]="$5"; }
 df_each collect_meta
 
-# ── --prune: symlinks pointing into the repo that no record claims ────────────
+# ── --prune: delete symlinks into the repo that no record claims ──────────────
+# Only symlinks whose target is inside the repo are candidates, so this can never
+# delete a real file. Honors --dry-run (list only) and --force (no confirmation).
 if [[ $PRUNE -eq 1 ]]; then
   typeset -A CLAIMED=(); for l in "${LABELS[@]}"; do CLAIMED[${LLIVE[$l]}]=1; done
+  typeset -a ORPHANS=()
   echo "  ${CYAN}orphans${RESET} (symlinks into the repo with no record):"
-  found=0
   while IFS= read -r link; do
     [[ -n "${CLAIMED[$link]:-}" ]] && continue
     # readlink, not :A — a symlink whose target the repo no longer has is exactly
@@ -48,11 +53,23 @@ if [[ $PRUNE -eq 1 ]]; then
     tgt="$(readlink "$link")"
     [[ "$tgt" == "$REPO_DIR"/* ]] || continue
     [[ -e "$link" ]] || tgt="$tgt (dangling)"
-    echo "  ${YELLOW}⚠${RESET}  $link ${DIM}→ ${tgt#$REPO_DIR/}${RESET}"
-    found=1
-  done < <(find "$HOME/.config" -maxdepth 2 -type l 2>/dev/null; find "$HOME" -maxdepth 1 -type l 2>/dev/null)
-  [[ $found -eq 0 ]] && echo "  ${GREEN}✔${RESET}  none"
-  echo "  ${DIM}Remove them by hand: rm <path>${RESET}"
+    echo "  ${YELLOW}-${RESET}  $link ${DIM}→ ${tgt#$REPO_DIR/}${RESET}"
+    ORPHANS+=("$link")
+  done < <(
+    find "$HOME" -maxdepth 1 -type l 2>/dev/null
+    find "$HOME/.config" -maxdepth 2 -type l 2>/dev/null
+    if [[ -d "$HOME/Library/Application Support" ]]; then
+      find "$HOME/Library/Application Support" -maxdepth 2 -type l 2>/dev/null
+    fi
+  )
+  [[ ${#ORPHANS[@]} -eq 0 ]] && { echo "  ${GREEN}✔${RESET}  none"; exit 0; }
+  [[ $DRY_RUN -eq 1 ]] && exit 0
+  if [[ $FORCE -eq 0 ]]; then echo -n "  Remove? (y/N) "; read -r r; [[ "$r" != [yY] ]] && { echo "  Cancelled."; exit 0; }; fi
+  for link in "${ORPHANS[@]}"; do
+    rm "$link"; echo "  ${GREEN}✔${RESET}  removed $link"
+    # Drop the parent if that emptied it (e.g. ~/.config/environment.d/); rmdir refuses non-empty dirs.
+    [[ "${link:h}" != "$HOME" && "${link:h}" != "$HOME/.config" ]] && rmdir "${link:h}" 2>/dev/null || true
+  done
   exit 0
 fi
 

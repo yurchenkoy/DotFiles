@@ -11,9 +11,9 @@ immediately. One repo provisions either machine after a reinstall or on new hard
 | starship / fsh / nvim | both | `~/.config/...` (common) |
 | zsh | both | `~/.zshrc` → sources `~/.config/zsh/{os,common}.zsh` |
 | ghostty | both | mac: `~/Library/Application Support/com.mitchellh.ghostty/`, linux: `~/.config/ghostty/` |
-| git | both | `~/.gitconfig` → includes `~/.config/git/{common.gitconfig,signing}` |
+| git | both | `~/.config/git/config` (shared); `~/.gitconfig` is per-machine, untracked — gh writes there |
 | karabiner / aerospace / alfred | macOS | `~/.config/...`, `~/Library/...` |
-| xremap / environment.d | Linux | `~/.config/...` |
+| xremap | Linux | `~/.config/...` |
 | hypr / waybar / mako / fuzzel / wlogout | Linux | `~/.config/...` (desktop, see below) |
 
 Every live path above is a symlink into this repo, except records marked `copy` in the map.
@@ -28,7 +28,8 @@ truth; this table is a summary.
 4. `brew bundle --file=packages/Brewfile`
 5. `./scripts/dotfiles-distribute`
 6. `chmod go-w "$(brew --prefix)/share" "$(brew --prefix)/share/zsh-completions"`
-7. Set up commit signing — see below.
+7. Proton Pass: enable its SSH agent and unlock the vault — see Commit signing.
+8. `gh auth login` — answer **Yes** to "Authenticate Git with your GitHub credentials?"
 
 ## First-time setup — Linux
 1. `git clone https://github.com/yurchenkoy/DotFiles ~/Documents/DotFiles && cd ~/Documents/DotFiles`
@@ -38,19 +39,20 @@ truth; this table is a summary.
 5. `./scripts/theme-apply` — **required, not cosmetic.** It generates the color fragments every desktop config pulls in. Without it Hyprland does not start at all (`require("colors")` is a hard error when the file is missing), and Waybar, fuzzel and mako come up unthemed.
 6. `fast-theme XDG:tokyodark` (regenerates the fsh theme cache — only `tokyodark.ini` is tracked).
 7. Finish the printed privileged/manual steps (xremap binary, greetd, a polkit agent, Proton Pass, GitHub key).
-8. Set up commit signing — see below.
+8. Proton Pass: enable its SSH agent and unlock the vault — see Commit signing.
+9. `gh auth login` — answer **Yes** to "Authenticate Git with your GitHub credentials?"
 
 ## Commit signing
-SSH signing on **both** macOS and Linux, with the private key in a Proton Pass vault served by its
-SSH agent. Commits are always signed and are **blocked until this is set up** (fail-closed): the
-repo tracks only the always-sign policy, and you create the per-machine
-`~/.config/git/signing.local` yourself. Full walkthrough in `secrets/signing.template`.
+Commits and tags are always signed with an SSH key held in a Proton Pass vault. The public key
+is inline in `configs/common/git/gitconfig`; Proton Pass's SSH agent supplies the private half.
+Per machine: install Proton Pass, enable its SSH agent, keep the vault unlocked. Nothing else.
 
-Add the public key to GitHub as a **Signing** key — its own type; an Authentication key does not
-make commits show as Verified.
+Signing is fail-closed: if the agent is unreachable or the vault is locked, the commit fails
+(e.g. `Couldn't get agent socket?`) instead of going out unsigned. Unlock Proton Pass; this
+recurs after reboots.
 
-If a commit fails with `No private key found for public key …`, Proton Pass is closed or its vault
-is locked. The socket can exist while nothing listens on it. Unlock it; this recurs after reboots.
+The key is on GitHub as a **Signing** key (once per account, not per machine), which is what
+makes commits show as Verified.
 
 ## Linux desktop (Hyprland — TokyoNight)
 TokyoNight Storm, deployed by symlink.
@@ -81,13 +83,14 @@ Edit the config in this repo — it *is* the live file. Then:
 ```
 git add -A && git commit -m 'update configs' && git push
 ```
-`dotfiles-distribute` only needs re-running after adding a record, or on a fresh machine.
+`dotfiles-distribute` only needs re-running after adding, moving or removing a record (then
+`--prune`), or on a fresh machine.
 
 ```
 dotfiles-distribute              # link repo → live (idempotent; re-running is a no-op)
 dotfiles-distribute --dry-run    # show what would change, touch nothing
 dotfiles-distribute --force      # every record, no fzf picker, no confirmation
-dotfiles-distribute --prune      # list symlinks into the repo that no record claims
+dotfiles-distribute --prune      # delete symlinks into the repo that no record claims
 dotfiles-collect                 # only `copy`-mode records (macOS Alfred) + the Brewfile
 ```
 A real file or directory sitting where a symlink belongs is moved to `<path>.bak`, never deleted.

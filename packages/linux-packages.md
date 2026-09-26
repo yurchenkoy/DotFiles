@@ -16,7 +16,7 @@ Arch needs `multilib` uncommented in `/etc/pacman.conf` before Steam, and an AUR
 | zoxide | `dnf install zoxide` | `pacman -S zoxide` | |
 | gh | `dnf install gh` | `pacman -S github-cli` | |
 | tree | `dnf install tree` | `pacman -S tree` | |
-| git / git-lfs | `dnf install git git-lfs` | `pacman -S git git-lfs` | |
+| git | `dnf install git` | `pacman -S git` | |
 | node | `dnf install nodejs24 nodejs24-npm nodejs24-bin` | `pacman -S nodejs npm` | Fedora versions the package |
 | dotnet | `dnf install dotnet-sdk-10.0` | `pacman -S dotnet-sdk` | v10, not 8 |
 | starship | COPR `atim/starship` | `pacman -S starship` | no third-party repo needed on Arch |

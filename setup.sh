@@ -22,13 +22,17 @@ for script in "$SCRIPTS_DIR"/*(.N); do
   [[ -L "$tgt" ]] && rm "$tgt"; ln -s "$script" "$tgt"; echo "  ${GREEN}✔${RESET} symlinked $name"
 done
 
+# --- shared: per-machine git config. Must be a plain file, not a symlink, so gh and
+#     `git config --global` write here instead of into the repo's tracked config. ---
+touch "$HOME/.gitconfig" && echo "  ${GREEN}✔${RESET} per-machine git config: ~/.gitconfig"
+
 if [[ "$OS" == mac ]]; then
   echo "\n  Next (macOS):"
   echo "    1. /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
   echo "    2. brew bundle --file=$REPO_DIR/packages/Brewfile"
   echo "    3. dotfiles-distribute"
   echo "    4. chmod go-w \"\$(brew --prefix)/share\" \"\$(brew --prefix)/share/zsh-completions\""
-  echo "    5. install Proton Pass + set up SSH commit signing (see secrets/signing.template)"
+  echo "    5. Proton Pass: enable its SSH agent + unlock (commit signing); gh auth login (Yes to git credentials)"
 else
   echo "\n  ${CYAN}Automating unprivileged Linux bootstrap...${RESET}"
   PLUG="$HOME/.local/share/zsh/plugins"; mkdir -p "$PLUG"
@@ -52,6 +56,6 @@ else
   echo "    • install nerd fonts (packaged on Arch; else manual + fc-cache -f)"
   echo "    • install xremap (AUR on Arch; else prebuilt binary to /usr/local/bin)"
   echo "    • optional: a wallpaper at ~/Pictures/Wallpapers/tokyonight.jpg (else a solid colour)"
-  echo "    • greetd/tuigreet, a polkit agent, Proton Pass SSH-agent setup, GitHub signing key upload"
+  echo "    • greetd/tuigreet, a polkit agent, Proton Pass SSH agent, gh auth login (Yes to git credentials)"
 fi
 echo "\n  ${GREEN}Done.${RESET}"
