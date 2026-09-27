@@ -596,6 +596,17 @@ hi(0, "@markup.raw", { fg = c.string })
 hi(0, "@markup.list", { fg = "#6796e6" })
 hi(0, "@markup.quote", { fg = c.comment })
 
+-- Man pages (:Man / MANPAGER) — mirrors .ini roles: section / key / value
+hi(0, "manSectionHeading", { fg = c.orange2, bold = true }) -- [section]  #D19A66
+hi(0, "manSubHeading", { fg = c.orange2 })
+hi(0, "manBold", { fg = c.type, bold = true }) -- key        #36C0C0
+hi(0, "manOptionDesc", { link = "manBold" })
+hi(0, "manUnderline", { fg = c.string, underline = true }) -- value      #F7768E
+hi(0, "manItalic", { fg = c.string, italic = true })
+hi(0, "manReference", { fg = c.blue_light, underline = true }) -- link       #3794FF
+hi(0, "manHeader", { fg = c.fg_dim, bold = true }) -- chrome     #8C8C8C
+hi(0, "manFooter", { fg = c.fg_dim })
+
 -- Diffs
 hi(0, "@diff.plus", { fg = c.green })
 hi(0, "@diff.minus", { fg = c.red })

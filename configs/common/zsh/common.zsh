@@ -1,5 +1,6 @@
 export EDITOR="nvim"
 export VISUAL="nvim"
+export MANPAGER="nvim +Man!"   # read man pages in nvim (K / Ctrl-] follows page refs)
 
 # Proton Pass desktop app's SSH agent (serves keys while the vault is unlocked).
 # This covers terminals on both OSes; on Linux, hyprland.lua sets it for GUI apps.
