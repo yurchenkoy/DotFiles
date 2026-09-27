@@ -61,7 +61,8 @@ TokyoNight Storm, deployed by symlink.
 - **Wallpaper** — `swaybg`, started by `scripts/wallpaper-init`, which falls back to a solid palette colour when the slot is empty. The image is **not** tracked — back up `~/Pictures/Wallpapers/` yourself.
 - **Power** — `wlogout` (Lock/Sleep/Reboot/Shutdown), bound to the Waybar power button and `Caps+Super+Esc`. Locking is manual — no idle daemon, and `hyprlock` runs unthemed until its config is rebuilt.
 - **Notifications** — `mako`, with per-source styling matched on app name (`notify-send -a <name>`). Right-click the Waybar bell for do-not-disturb, middle-click to clear.
-- **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null`. Keys inside the launcher come from its own `[key-bindings]` — xremap cannot see a layer-shell surface.
+- **Keyboard** — `xremap` gives Mac keybindings in GUI apps and terminals; details in `packages/linux-packages.md` → xremap.
+- **Launcher** — `fuzzel` (`Super+Space`), also the dmenu front-end for `fz-*` wrapper scripts. Validate edits with `fuzzel --dmenu </dev/null` (look for an `err:` line; the exit code is always 1). xremap can't match a layer-shell surface and keeps applying the previous window's rules, so the launcher's own `[key-bindings]` cover each rewritten form.
 - **Screenshots** — `grim`/`slurp`/`swappy` (`Super+Shift+4` region, `Super+Shift+3` full → `~/Pictures/Screenshots` + clipboard).
 - **Bluetooth labels** — Waybar shows each device's alias; rename with `bluetoothctl` → `set-alias <label>` (per machine, stored by BlueZ).
 

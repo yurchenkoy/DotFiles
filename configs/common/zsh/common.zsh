@@ -117,9 +117,10 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}'
 # --- Remove / from WORDCHARS (deletion stops at path separators) ---
 WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
-# Super+Backspace (xremap → ^U in terminals) deletes the WHOLE line, not just to
-# the start (zsh's default backward-kill-line). Matches the macOS Cmd+Backspace feel.
-bindkey '^U' kill-whole-line
+# Cmd+Backspace sends ^U (xremap on Linux, Ghostty's default on macOS). zsh's emacs
+# default is kill-whole-line; rebind so it deletes only left of the cursor, as in a
+# macOS text field.
+bindkey '^U' backward-kill-line
 
 
 # ─────────────────────────────────────────────────────────────

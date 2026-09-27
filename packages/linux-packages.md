@@ -97,14 +97,32 @@ every shell start); `xremap` is a hand-placed `/usr/local/bin` binary on Fedora 
 
 **fuzzel** is the launcher (`Super+Space`) and the dmenu front-end for wrapper scripts.
 
-- `fuzzel --dmenu </dev/null` is a config check — an unknown key exits non-zero and names it.
+- `fuzzel --dmenu </dev/null` is a config check. It always exits 1 on empty input, so look for an
+  `err:` line on stderr naming the bad key, not at the exit code.
 - Colours are `rrggbbaa` with **no** `#`; fonts use fontconfig `family:size=N`. mako below wants
   the opposite of both.
 - `width` is in characters, `lines` in lines, not pixels.
 - `namespace` is set explicitly so the blur `hl.layer_rule` matches. Keep the two in sync.
-- **It is layer-shell only**, so `hyprctl activewindow` never reports it and **xremap cannot see
-  it**. Its `[key-bindings]` section is therefore the only place to fix keys inside the launcher.
+- **It is layer-shell only**, so `hyprctl activewindow` never reports it and **xremap cannot match
+  it**. xremap still rewrites keys typed into it, using the rules of the window focused before it
+  opened. Its `[key-bindings]` section binds every form a Mac chord can arrive in: the GUI rewrite
+  (e.g. `Shift+Home` for Cmd+Backspace), the terminal rewrite (`Control+u`), and the raw chord.
   XKB names there: `Mod4`=Super, `Mod1`=Alt; `Super` and `Mod3` are rejected.
+
+**xremap** gives Mac keybindings (`configs/linux/xremap/config.yml`); the config's header lists the blocks.
+
+- `--watch=config` did not reliably pick up edits, so restart xremap after changing the config. The
+  running instance's errors aren't visible. To check a change, load it into a second instance
+  pointed at a device that doesn't exist:
+  `xremap --device /nonexistent ~/.config/xremap/config.yml`. `Unknown key` means a bad name;
+  `No device was selected!` means the config parsed.
+- The first matching keymap entry wins, so app-specific blocks (e.g. Brave) sit above the generic
+  Super→Ctrl block.
+- Started with `--mouse` so Cmd+click can become Ctrl+click. xremap then grabs the mouse and
+  re-emits its events. If pointer or scroll behaviour ever looks off, drop `--mouse` in
+  hyprland.lua and the two `BTN_LEFT` lines in the config first.
+- Cmd+Backspace can't see a selection, so with text selected it doesn't delete just the selection
+  as on macOS.
 
 **mako** handles notifications: one INI plus a generated colour fragment.
 

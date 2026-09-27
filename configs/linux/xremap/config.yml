@@ -3,18 +3,21 @@
 #
 #  Jobs:
 #    1. Caps Lock dual-role : tap = Escape, hold = Hyper (Karabiner parity)
-#    2. Super → Ctrl         : Cmd-style app shortcuts (GUI apps only)
+#    1b. Brave-only          : Cmd+[ ] back/forward, Cmd+Shift+[ ] tabs
+#    2. Super → Ctrl         : Cmd-style app shortcuts + Cmd+click (GUI apps only)
 #    3. Ctrl → emacs text-nav: macOS Ctrl+letter cursor movement (GUI apps)
 #    4. Cmd line/doc nav      : Super+arrows / Super+Backspace (GUI apps)
 #    5. Option word editing   : Alt+arrows / Alt+Backspace (GUI apps)
 #
 #  Terminals are excluded everywhere (Ctrl+C stays SIGINT; readline owns nav).
-#  Window classes come from `xremap --list-windows` (Hyprland class).
-#  Service: ~/.config/systemd/user/xremap.service → /usr/local/bin/xremap
+#  First matching entry wins, so app-specific blocks sit above the generic ones.
+#  Window classes come from `hyprctl clients` (Hyprland class).
+#  Started by hyprland.lua's autostart with --mouse (needed for the Cmd+click
+#  entries below). Restart xremap after editing: --watch=config missed edits here.
 #
-#  NOTE: the conflicting Super keys — Super+L and Super+1..9 — are intentionally
-#  NOT here. They collide with Caps+Super+L / Caps+Super+1..9 (window mgmt), so
-#  they live in hyprland.conf via `sendshortcut`, where the compositor can tell
+#  NOTE: the conflicting Super keys — Super+H/L and Super+1..9 — are intentionally
+#  NOT here. They collide with Caps+Super+H/L / Caps+Super+1..9 (window mgmt), so
+#  they live in hyprland.lua via `send_shortcut`, where the compositor can tell
 #  Super apart from Hyper+Super. (Letters below don't collide.)
 # ════════════════════════════════════════════════════════════════════════
 
@@ -31,6 +34,19 @@ modmap:
         alone_timeout_millis: 200
 
 keymap:
+  # ── 1b. Brave-only Cmd shortcuts (Mac Chrome parity) ───────────────────
+  #   Browser-only chords, kept out of other GUI apps. Above block 2 so these win
+  #   for Brave; everything else falls through to the generic Super→Ctrl map.
+  - name: "Brave Cmd shortcuts (Mac Chrome parity)"
+    exact_match: true
+    application:
+      only: [/brave/]
+    remap:
+      Super-LeftBrace: Alt-Left             # back
+      Super-RightBrace: Alt-Right           # forward
+      Super-Shift-LeftBrace: Ctrl-PageUp    # previous tab
+      Super-Shift-RightBrace: Ctrl-PageDown # next tab
+
   # ── 2. Super → Ctrl : Cmd-style app shortcuts (GUI apps) ───────────────
   - name: "Super to Ctrl (GUI apps)"
     exact_match: true
@@ -78,7 +94,26 @@ keymap:
       Super-Shift-i: Ctrl-Shift-i     # devtools
       Super-Shift-j: Ctrl-Shift-j     # browser console
       Super-Shift-c: Ctrl-Shift-c     # inspector / pick element
-      # (Super+L and Super+1..9 are in hyprland.conf — see note above)
+      # Zoom
+      Super-equal: Ctrl-equal         # zoom in
+      Super-minus: Ctrl-minus         # zoom out
+      Super-0: Ctrl-0                 # reset zoom
+      # Editing / web-app chords
+      Super-b: Ctrl-b                 # bold
+      Super-i: Ctrl-i                 # italic
+      Super-u: Ctrl-u                 # underline (on a plain page Brave opens view-source)
+      Super-g: Ctrl-g                 # find next
+      Super-Shift-g: Ctrl-Shift-g     # find previous
+      Super-o: Ctrl-o                 # open
+      Super-d: Ctrl-d                 # bookmark (browser) / next occurrence (editors)
+      Super-slash: Ctrl-slash         # toggle comment
+      Super-Shift-f: Ctrl-Shift-f     # search in files
+      Super-Shift-s: Ctrl-Shift-s     # save as
+      Super-Enter: Ctrl-Enter         # submit (comments, chats, forms)
+      Super-Shift-Enter: Ctrl-Shift-Enter  # submit variant
+      Super-BTN_LEFT: Ctrl-BTN_LEFT   # Cmd+click → open link in new tab
+      Super-Shift-BTN_LEFT: Ctrl-Shift-BTN_LEFT
+      # (Super+H/L and Super+1..9 are in hyprland.lua — see note above)
 
   # ── 2b. Terminal copy/paste/reload (Ghostty etc.) ──────────────────────
   #   Terminals are EXCLUDED from the GUI Super→Ctrl rule above so Ctrl+C stays
@@ -102,7 +137,7 @@ keymap:
       # Cmd-style line editing at the shell prompt (readline/zsh chords):
       Super-Left: Ctrl-a               # jump to start of line  (beginning-of-line)
       Super-Right: Ctrl-e              # jump to end of line    (end-of-line)
-      Super-Backspace: Ctrl-u          # delete whole line (zsh ^U rebound to kill-whole-line in .zshrc)
+      Super-Backspace: Ctrl-u          # delete to line start (zsh ^U = backward-kill-line, common.zsh)
       # Option/Alt word jump at the prompt (readline backward-word / forward-word):
       Alt-Left: Alt-b                  # jump one word left
       Alt-Right: Alt-f                 # jump one word right
@@ -161,17 +196,14 @@ keymap:
       Super-Right: End                # line end
       Super-Up: Ctrl-Home             # document top
       Super-Down: Ctrl-End            # document bottom
-      # Whole-line delete that also clears a selection: End collapses any selection to the
-      # caret's line, Shift-Home selects that whole line, Backspace deletes it. With no
-      # selection it deletes the whole current line; after Super+A in a single-line field it
-      # clears the field. (A static remap can't branch on selection like macOS, so a multi-line
-      # Super+A selection only clears the focused line — accepted trade-off.)
-      Super-Backspace: [End, Shift-Home, Backspace]
+      # Delete to line start, like macOS. Exact when nothing is selected. A static remap
+      # can't see a selection, so with one Shift-Home re-extends it from its anchor
+      # instead of deleting just the selection (Cmd+Z undoes) — accepted trade-off.
+      Super-Backspace: [Shift-Home, Backspace]
 
   # ── 5. Option (Alt) word editing (GUI apps) ────────────────────────────
-  #   NOTE: this overrides Alt+Left/Right = browser Back/Forward.
-  #   Alt+Shift+arrow selection is currently eaten by grp:alt_shift_toggle
-  #   (layout switch) — pending a decision on the layout-switch chord.
+  #   NOTE: this overrides Alt+Left/Right = browser Back/Forward; in Brave use
+  #   Cmd+[ / Cmd+] instead (block 1b), as on the Mac.
   - name: "Option word editing (GUI apps)"
     exact_match: true
     application: *gui_only

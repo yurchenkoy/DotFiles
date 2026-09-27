@@ -130,6 +130,13 @@ hl.bind(hyper .. " + grave", hl.dsp.workspace.move({ monitor = "+1" })) -- move 
 -- ── macOS app shortcuts that collide with Caps+Super window mgmt ─────────
 -- Here, not xremap, so the compositor can tell Super+key from Caps+Super+key.
 hl.bind("SUPER + L", hl.dsp.send_shortcut({ mods = "CTRL", key = "L", window = "activewindow" }))
+-- Cmd+H → history, Brave only, so other apps don't get a stray Ctrl+H.
+hl.bind("SUPER + H", function()
+	local w = hl.get_active_window()
+	if w and w.class:find("brave") then
+		hl.dispatch(hl.dsp.send_shortcut({ mods = "CTRL", key = "H", window = "activewindow" }))
+	end
+end)
 -- Tab switching. ⚠ Brave/Chromium use Ctrl+number; Firefox needs ALT instead.
 for i = 1, 9 do
 	hl.bind("SUPER + " .. i, hl.dsp.send_shortcut({ mods = "CTRL", key = tostring(i), window = "activewindow" }))
@@ -161,8 +168,9 @@ hl.layer_rule({
 hl.on("hyprland.start", function()
 	-- Resolved at runtime: Fedora installs the binary by hand to /usr/local/bin, Arch's
 	-- package puts it in /usr/bin, and Hyprland's exec PATH does not reliably cover both.
+	-- --mouse lets the config remap Cmd+click; xremap then grabs and re-emits the mouse too.
 	hl.exec_cmd("sh -c 'command -v xremap >/dev/null && X=xremap || X=/usr/local/bin/xremap; " ..
-		"exec \"$X\" --watch=config,device " .. home .. "/.config/xremap/config.yml'")
+		"exec \"$X\" --watch=config,device --mouse " .. home .. "/.config/xremap/config.yml'")
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("mako")
 	hl.exec_cmd(home .. "/.local/bin/wallpaper-init") -- image, or a solid palette colour
