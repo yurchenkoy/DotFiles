@@ -586,7 +586,25 @@ hi(0, "@attribute", { fg = c.attribute })
 
 -- Markup (Markdown etc.)
 hi(0, "@markup.heading", { fg = c.purple, bold = true })
-hi(0, "@markup.bold", { fg = c.purple, bold = true })
+
+-- Markdown headings: a colour per level, with a faint full-width bar of the same colour
+-- (render-markdown). Purple is kept out of them so it only means **bold**.
+local function tint(color, alpha) -- mix color into the editor background
+  local function rgb(hex)
+    return tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16)
+  end
+  local r1, g1, b1 = rgb(color)
+  local r2, g2, b2 = rgb(c.bg)
+  local function mix(a, b)
+    return math.floor(a * alpha + b * (1 - alpha) + 0.5)
+  end
+  return string.format("#%02x%02x%02x", mix(r1, r2), mix(g1, g2), mix(b1, b2))
+end
+for level, color in ipairs({ c.blue, c.func, c.cyan, c.green, c.orange2, c.constant }) do
+  hi(0, "@markup.heading." .. level .. ".markdown", { fg = color, bold = true })
+  hi(0, "RenderMarkdownH" .. level .. "Bg", { bg = tint(color, 0.15) })
+end
+hi(0, "@markup.strong", { fg = c.purple, bold = true }) -- **bold** (Neovim's capture name; @markup.bold is never used)
 hi(0, "@markup.italic", { italic = true })
 hi(0, "@markup.strikethrough", { strikethrough = true })
 hi(0, "@markup.underline", { underline = true })

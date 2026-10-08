@@ -309,12 +309,68 @@ local function sessions_picker()
   })
 end
 
+-- <leader>av shows the chat in the current window instead of a split. CodeCompanion's own
+-- "buffer" layout hides it with `:buffer #` in whichever window has focus, and closing a chat
+-- deletes its buffer, which closes the window showing it. So track the window the chat
+-- borrowed, and hand that window its previous buffer back ourselves.
+local function give_back(win)
+  local prev = vim.w[win].codecompanion_prev_buf
+  vim.w[win].codecompanion_prev_buf = nil
+  if prev and vim.api.nvim_buf_is_valid(prev) then
+    vim.api.nvim_win_set_buf(win, prev)
+  else
+    vim.api.nvim_win_call(win, vim.cmd.enew)
+  end
+end
+
+-- Hide the chat if it's visible (returns true), wherever it is and whichever window has focus.
+local function hide_chat()
+  local chat = require("codecompanion").last_chat()
+  if not (chat and chat.ui:is_visible()) then
+    return false
+  end
+  local win = chat.ui.winnr
+  if vim.w[win].codecompanion_prev_buf then
+    give_back(win)
+    chat.ui:hide({ keep_window = true }) -- only fires the ChatHidden event
+  else
+    chat.ui:hide()
+  end
+  return true
+end
+
+local function toggle_chat(in_this_window)
+  if hide_chat() then
+    return
+  end
+  local win, buf = vim.api.nvim_get_current_win(), vim.api.nvim_get_current_buf()
+  local window_opts = in_this_window and { layout = "buffer" } or { default = true }
+  require("codecompanion").toggle_chat({ window_opts = window_opts })
+  if in_this_window then
+    vim.w[win].codecompanion_prev_buf = buf
+  end
+end
+
 return {
   "olimorris/codecompanion.nvim",
   dependencies = {
     "nvim-lua/plenary.nvim",
   },
   cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions" },
+  init = function()
+    -- Before a chat buffer is deleted (new chat, resume, rewind, fork), give any window it
+    -- borrowed through <leader>av its previous buffer, so the window isn't closed with it.
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "CodeCompanionChatClosed",
+      callback = function(ev)
+        for _, win in ipairs(vim.fn.win_findbuf(ev.data.bufnr)) do
+          if vim.w[win].codecompanion_prev_buf then
+            give_back(win)
+          end
+        end
+      end,
+    })
+  end,
   opts = {
     adapters = {
       acp = {
@@ -361,11 +417,11 @@ return {
   keys = {
     -- which-key group label, as LazyVim's ai extras define it.
     { "<leader>a", "", desc = "+ai", mode = { "n", "v" } },
-    -- Each key opens the chat in its own layout (a chat otherwise reopens in the last one used).
+    -- Either key hides a visible chat; when hidden, each opens it in its own layout.
     {
       "<leader>ac",
       function()
-        require("codecompanion").toggle_chat({ window_opts = { default = true } })
+        toggle_chat(false)
       end,
       mode = { "n", "v" },
       desc = "Toggle chat",
@@ -373,7 +429,7 @@ return {
     {
       "<leader>av",
       function()
-        require("codecompanion").toggle_chat({ window_opts = { layout = "buffer" } })
+        toggle_chat(true)
       end,
       mode = { "n", "v" },
       desc = "Toggle chat (in this window)",
