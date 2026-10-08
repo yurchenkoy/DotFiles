@@ -337,6 +337,13 @@ return {
         end,
       },
     },
+    display = {
+      chat = {
+        -- Width 0 skips CodeCompanion's resize, so 'equalalways' gives every window
+        -- equal width instead of squashing the neighbouring split.
+        window = { width = 0 },
+      },
+    },
     interactions = {
       chat = {
         adapter = "claude_code",
@@ -354,7 +361,23 @@ return {
   keys = {
     -- which-key group label, as LazyVim's ai extras define it.
     { "<leader>a", "", desc = "+ai", mode = { "n", "v" } },
-    { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "Toggle chat" },
+    -- Each key opens the chat in its own layout (a chat otherwise reopens in the last one used).
+    {
+      "<leader>ac",
+      function()
+        require("codecompanion").toggle_chat({ window_opts = { default = true } })
+      end,
+      mode = { "n", "v" },
+      desc = "Toggle chat",
+    },
+    {
+      "<leader>av",
+      function()
+        require("codecompanion").toggle_chat({ window_opts = { layout = "buffer" } })
+      end,
+      mode = { "n", "v" },
+      desc = "Toggle chat (in this window)",
+    },
     {
       "<leader>an",
       function()

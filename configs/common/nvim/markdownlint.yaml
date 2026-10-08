@@ -1,0 +1,14 @@
+# markdownlint rules for nvim (passed explicitly by lua/plugins/markdownlint.lua,
+# for both the linter and the on-save fixer). Everything is off except rules that
+# catch markdown that renders wrong; whitespace/style is left to prettier.
+config:
+  default: false
+  MD011: true # reversed link syntax: (text)[url]
+  MD037: true # spaces inside emphasis: ** bold ** doesn't render
+  MD038: true # spaces inside `code` spans
+  MD039: true # spaces inside link text: [ text ](url)
+  MD040: true # fenced code block without a language (no syntax highlighting)
+  MD042: true # empty links: [text]() or [text](#)
+  MD051: true # #fragment links to headings that don't exist
+  MD052: true # [text][ref] reference links with no [ref]: definition
+  MD056: true # table rows with the wrong number of columns

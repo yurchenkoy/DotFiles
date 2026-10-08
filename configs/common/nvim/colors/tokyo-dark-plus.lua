@@ -592,7 +592,8 @@ hi(0, "@markup.strikethrough", { strikethrough = true })
 hi(0, "@markup.underline", { underline = true })
 hi(0, "@markup.link", { fg = c.blue_light })
 hi(0, "@markup.link.url", { fg = c.blue_light, underline = true })
-hi(0, "@markup.raw", { fg = c.string })
+hi(0, "@markup.raw", { fg = c.blue }) -- inline `code`, same blue as control-flow keywords
+hi(0, "@markup.raw.block", { fg = c.fg }) -- fenced blocks: plain text where the injected language leaves it unhighlighted
 hi(0, "@markup.list", { fg = "#6796e6" })
 hi(0, "@markup.quote", { fg = c.comment })
 

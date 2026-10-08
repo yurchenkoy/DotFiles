@@ -1,4 +1,4 @@
-local config = vim.fn.stdpath("config") .. "/.markdownlint-cli2.yaml"
+local config = vim.fn.stdpath("config") .. "/markdownlint.yaml"
 
 return {
   {
