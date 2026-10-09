@@ -383,11 +383,6 @@ hi(0, "FoldColumn", { fg = "#627082", bg = c.none })
 hi(0, "Directory", { fg = c.blue })
 hi(0, "Title", { fg = c.purple, bold = true })
 
-hi(0, "DiffAdd", { bg = "#242e25" })
-hi(0, "DiffChange", { bg = "#2a2428" })
-hi(0, "DiffDelete", { bg = "#2a2428" })
-hi(0, "DiffText", { bg = "#414868" })
-
 hi(0, "SpellBad", { sp = c.error, undercurl = true })
 hi(0, "SpellCap", { sp = c.warn, undercurl = true })
 hi(0, "SpellRare", { sp = c.info, undercurl = true })
@@ -604,6 +599,16 @@ for level, color in ipairs({ c.blue, c.func, c.cyan, c.green, c.orange2, c.const
   hi(0, "@markup.heading." .. level .. ".markdown", { fg = color, bold = true })
   hi(0, "RenderMarkdownH" .. level .. "Bg", { bg = tint(color, 0.15) })
 end
+
+-- Diffs: red/green strong enough to read in a terminal (the VS Code values were 7-10%
+-- tints), and blue for side-by-side "changed" lines, with the differing words stronger.
+hi(0, "DiffAdd", { bg = tint(c.green, 0.22) })
+hi(0, "DiffDelete", { bg = tint(c.red, 0.22) })
+hi(0, "DiffChange", { bg = tint(c.blue, 0.15) })
+hi(0, "DiffText", { bg = tint(c.blue, 0.35) })
+-- Snacks diff previews colour unchanged context lines with DiffChange; keep them plain.
+-- (A link counts as set, so snacks' default link doesn't replace it.)
+hi(0, "SnacksDiffContext", { link = "@none" })
 hi(0, "@markup.strong", { fg = c.purple, bold = true }) -- **bold** (Neovim's capture name; @markup.bold is never used)
 hi(0, "@markup.italic", { italic = true })
 hi(0, "@markup.strikethrough", { strikethrough = true })
