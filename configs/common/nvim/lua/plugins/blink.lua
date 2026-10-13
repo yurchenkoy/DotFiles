@@ -4,7 +4,8 @@ return {
     sources = {
       per_filetype = {
         -- No "buffer" source in markdown
-        markdown = { "lsp", "path", "snippets" },
+        markdown = { "lsp", "path" },
+        codecompanion = { "lsp", "path" },
       },
     },
   },
