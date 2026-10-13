@@ -55,10 +55,32 @@ local function session_prompts(file)
   return prompts, cwd
 end
 
--- Open a new chat and call on_ready(chat, conn) once its ACP connection is up, which
--- happens asynchronously after the chat opens.
-local function new_chat(on_ready)
-  local chat = require("codecompanion").chat()
+-- Don't replace, resume over, or rewind a chat that's still answering.
+local function busy(chat)
+  if chat and chat.current_request then
+    vim.notify("Wait for the response to finish (or stop it with <C-c>)", vim.log.levels.WARN)
+    return true
+  end
+  return false
+end
+
+-- The chat's Claude Code connection once it's up and has a session, else nil. It comes
+-- up asynchronously, a few seconds after the chat opens.
+local function ready_conn(chat)
+  local conn = chat and chat.acp_connection
+  if conn and conn:is_ready() and conn.session_id then
+    return conn
+  end
+end
+
+-- Open a hidden chat and call on_ready(chat, conn) once its connection is up. The caller
+-- then shows it (present) or closes it; nothing is shown while it connects and loads.
+-- slow_msg: shown only if connecting takes over 2 seconds (it usually takes about 0.5).
+local function new_chat(on_ready, slow_msg)
+  if vim.fn.executable("claude-agent-acp") ~= 1 then
+    return vim.notify("`claude-agent-acp` isn't on PATH", vim.log.levels.ERROR)
+  end
+  local chat = require("codecompanion").chat({ hidden = true })
   if not chat then
     return vim.notify("Couldn't open a CodeCompanion chat", vim.log.levels.ERROR)
   end
@@ -72,13 +94,17 @@ local function new_chat(on_ready)
         return
       end
       waited = waited + 100
-      local conn = chat.acp_connection
-      if conn and conn.session_id then
+      if not vim.api.nvim_buf_is_valid(chat.bufnr) then
+        timer:close() -- the chat was closed while connecting
+      elseif ready_conn(chat) then
         timer:close()
-        on_ready(chat, conn)
+        on_ready(chat, chat.acp_connection)
       elseif waited >= 15000 then
         timer:close()
+        chat:close()
         vim.notify("Claude Code didn't connect in time", vim.log.levels.WARN)
+      elseif waited == 2000 and slow_msg then
+        vim.notify(slow_msg)
       end
     end)
   )
@@ -94,37 +120,105 @@ local function delete_sessions(conn, ids)
   end
 end
 
--- Open a new chat and load an existing Claude Code session into it, like /resume does.
--- opts.title: chat title; opts.on_loaded(conn): runs only once the session really loaded.
+-- Load an existing Claude Code session into a chat, like /resume does. Returns true
+-- only if that session really loaded.
+local function load_session(chat, conn, session_id, title)
+  local updates = {}
+  local ok = conn:load_session(session_id, {
+    on_session_update = function(update)
+      table.insert(updates, update)
+    end,
+  })
+  -- A failed session/load falls back to a brand-new session and still returns true.
+  if not ok or conn.session_id ~= session_id then
+    vim.notify("Failed to load session " .. session_id, vim.log.levels.ERROR)
+    return false
+  end
+  require("codecompanion.interactions.chat.acp.commands").link_buffer_to_session(chat.bufnr, conn.session_id)
+  require("codecompanion.interactions.chat.acp.render").restore_session(chat, updates)
+  if title then
+    chat:set_title(title)
+  end
+  return true
+end
+
+-- <leader>av shows the chat in the current window instead of a split. CodeCompanion's own
+-- "buffer" layout hides it with `:buffer #` in whichever window has focus, and closing a chat
+-- deletes its buffer, which closes the window showing it. So track the window the chat
+-- borrowed, and hand that window its previous buffer back ourselves.
+local function give_back(win)
+  local prev = vim.w[win].codecompanion_prev_buf
+  vim.w[win].codecompanion_prev_buf = nil
+  -- A buffer closed meanwhile (<leader>bd) is still valid, but unlisted and unloaded.
+  if prev and vim.api.nvim_buf_is_valid(prev) and (vim.bo[prev].buflisted or vim.api.nvim_buf_is_loaded(prev)) then
+    vim.api.nvim_win_set_buf(win, prev)
+  else
+    vim.api.nvim_win_call(win, vim.cmd.enew)
+  end
+end
+
+-- Where a visible chat is, so a chat replacing it can take its place: { win = window,
+-- split = true } when <leader>ac opened it, { win = window } when it borrowed the window
+-- through <leader>av, nil when hidden.
+local function placement(chat)
+  if not (chat and chat.ui:is_visible()) then
+    return nil
+  end
+  local win = chat.ui.winnr
+  return { win = win, split = not vim.w[win].codecompanion_prev_buf }
+end
+
+-- Show a hidden chat at place: in its split, or in its window like <leader>av. A window
+-- that's gone falls back to a new split or the current window.
+local function present(chat, place)
+  local win = place and vim.api.nvim_win_is_valid(place.win) and place.win or nil
+  if place and place.split then
+    if win then
+      chat.ui:show_in_win({ winnr = win, window_opts = { default = true } })
+      vim.api.nvim_set_current_win(win)
+    else
+      chat.ui:open({ window_opts = { default = true } })
+    end
+    return
+  end
+  win = win or vim.api.nvim_get_current_win()
+  local under = vim.api.nvim_win_get_buf(win)
+  vim.api.nvim_set_current_win(win)
+  chat.ui:show_in_win({ winnr = win, window_opts = { layout = "buffer" } })
+  -- When it replaces a chat that borrowed this window, the buffer to give back stays.
+  if vim.bo[under].filetype ~= "codecompanion" then
+    vim.w[win].codecompanion_prev_buf = under
+  end
+end
+
+-- Open an existing Claude Code session in a new chat shown at opts.place, then close the
+-- chat it replaces (opts.replaces). opts.title: chat title; opts.on_loaded(conn): runs
+-- only once the session really loaded. If it fails to load, nothing changes.
 local function open_session(session_id, opts)
   opts = opts or {}
   new_chat(function(chat, conn)
-    local updates = {}
-    local ok = conn:load_session(session_id, {
-      on_session_update = function(update)
-        table.insert(updates, update)
-      end,
-    })
-    -- A failed session/load falls back to a brand-new session and still returns true.
-    if not ok or conn.session_id ~= session_id then
-      return vim.notify("Failed to load session " .. session_id, vim.log.levels.ERROR)
+    if not load_session(chat, conn, session_id, opts.title) then
+      return chat:close()
     end
-    require("codecompanion.interactions.chat.acp.commands").link_buffer_to_session(chat.bufnr, conn.session_id)
-    require("codecompanion.interactions.chat.acp.render").restore_session(chat, updates)
-    if opts.title then
-      chat:set_title(opts.title)
+    present(chat, opts.place)
+    if opts.replaces then
+      opts.replaces:close()
     end
     if opts.on_loaded then
       opts.on_loaded(conn)
     end
-  end)
+  end, "Loading session…")
 end
 
 -- The open chat with a live Claude Code connection, or nil (with a warning).
 local function connected_chat()
   local chat = require("codecompanion").last_chat()
-  if not (chat and chat.acp_connection) then
-    vim.notify("Open a chat with <leader>ac first", vim.log.levels.WARN)
+  if not chat then
+    vim.notify("No chat open", vim.log.levels.WARN)
+    return nil
+  end
+  if not ready_conn(chat) then
+    vim.notify("Claude Code is still connecting", vim.log.levels.WARN)
     return nil
   end
   return chat
@@ -141,13 +235,12 @@ end
 -- tools needing approval are refused.
 local function branch(opts)
   local chat = connected_chat()
-  local session_id = chat and chat.acp_connection.session_id
-  if not session_id then
+  if not chat or busy(chat) then
     return
   end
-  if chat.current_request then
-    return vim.notify("Wait for the response to finish (or stop it with <C-c>)", vim.log.levels.WARN)
-  end
+  local session_id = chat.acp_connection.session_id
+  -- The result replaces the chat where it is, or takes this window when it's hidden.
+  local place = placement(chat) or { win = vim.api.nvim_get_current_win() }
   if vim.fn.executable("claude") ~= 1 then
     return vim.notify("`claude` isn't on PATH", vim.log.levels.ERROR)
   end
@@ -205,7 +298,7 @@ local function branch(opts)
       chat:close()
       local function failed(err)
         vim.notify("Failed: " .. err, vim.log.levels.ERROR)
-        open_session(session_id)
+        open_session(session_id, { place = place })
       end
 
       vim.notify((opts.delete_original and "Rewinding" or "Forking") .. ", Claude is answering…")
@@ -219,6 +312,7 @@ local function branch(opts)
             return failed((ok and type(out) == "table" and out.result) or res.stderr or "")
           end
           open_session(out.session_id, {
+            place = place,
             -- Only delete the original once the new session is safely loaded.
             on_loaded = opts.delete_original and function(conn)
               delete_sessions(conn, { session_id })
@@ -234,13 +328,26 @@ local function branch(opts)
 end
 
 -- Sessions for this folder: <CR> resumes one, <Tab> selects, <C-x> deletes the selection
--- (or the one under the cursor). Uses the open chat's connection to list and delete.
-local function sessions_picker()
-  local chat = connected_chat()
-  if not chat then
+-- (or the one under the cursor). The resumed session replaces the chat where it is, or
+-- takes the current window like <leader>av when no chat is shown. Lists and deletes
+-- through the chat's connection; without a connected chat (e.g. right after starting
+-- Neovim) through a hidden one, which the picked session is then loaded into.
+-- opts.place, opts.loader: carried over when the picker reopens itself.
+local function sessions_picker(opts)
+  opts = opts or {}
+  local chat = require("codecompanion").last_chat()
+  if busy(chat) then
     return
   end
-  local conn = chat.acp_connection
+  local place = opts.place or placement(chat) or { win = vim.api.nvim_get_current_win() }
+  local loader = opts.loader
+  if not loader and not ready_conn(chat) then
+    return new_chat(function(hidden)
+      sessions_picker({ place = place, loader = hidden })
+    end, "Connecting to Claude Code…")
+  end
+  local conn = loader and loader.acp_connection or chat.acp_connection
+  local current = chat and ready_conn(chat) and chat.acp_connection.session_id
   local utils = require("codecompanion.utils")
 
   local items = {}
@@ -255,9 +362,15 @@ local function sessions_picker()
     })
   end
   if #items == 0 then
+    if loader then
+      loader:close()
+    end
     return vim.notify("No previous sessions found", vim.log.levels.INFO)
   end
 
+  -- The hidden loader chat lives as long as the picker, unless a pick or a delete
+  -- hands it on.
+  local handed_on = false
   Snacks.picker({
     title = "Claude Code sessions",
     items = items,
@@ -265,11 +378,38 @@ local function sessions_picker()
     format = function(item)
       return { { ("%-10s "):format(item.age), "Comment" }, { item.text } }
     end,
+    on_close = function()
+      if loader and not handed_on then
+        loader:close()
+      end
+    end,
     confirm = function(picker, item)
-      picker:close()
-      if item then
-        chat:close()
-        open_session(item.session.sessionId, { title = item.session.title })
+      if not item then
+        return picker:close()
+      end
+      local s = item.session
+      if s.sessionId == current then
+        -- Already open: just show it.
+        picker:close()
+        if chat.ui:is_visible() then
+          vim.api.nvim_set_current_win(chat.ui.winnr)
+        else
+          present(chat, place)
+        end
+      elseif loader then
+        handed_on = true
+        picker:close()
+        if load_session(loader, conn, s.sessionId, s.title) then
+          present(loader, place)
+          if chat then
+            chat:close()
+          end
+        else
+          loader:close()
+        end
+      else
+        picker:close()
+        open_session(s.sessionId, { place = place, title = s.title, replaces = chat })
       end
     end,
     actions = {
@@ -282,23 +422,29 @@ local function sessions_picker()
         if vim.fn.confirm("Delete " .. what .. "?", "&Yes\n&No", 2) ~= 1 then
           return
         end
-        local ids, current = {}, false
+        local ids, deletes_current = {}, false
         for _, item in ipairs(selected) do
           table.insert(ids, item.session.sessionId)
-          current = current or item.session.sessionId == conn.session_id
+          deletes_current = deletes_current or item.session.sessionId == current
         end
+        handed_on = true
         picker:close()
-        if current then
+        if deletes_current then
           -- The open chat's own session is among them: close it first, then delete
-          -- from a fresh chat.
+          -- through a hidden chat.
           chat:close()
-          new_chat(function(_, new_conn)
-            delete_sessions(new_conn, ids)
-            sessions_picker()
-          end)
+          local function delete_and_reopen(hidden)
+            delete_sessions(hidden.acp_connection, ids)
+            sessions_picker({ place = place, loader = hidden })
+          end
+          if loader then
+            delete_and_reopen(loader)
+          else
+            new_chat(delete_and_reopen)
+          end
         else
           delete_sessions(conn, ids)
-          sessions_picker()
+          sessions_picker({ place = place, loader = loader })
         end
       end,
     },
@@ -307,20 +453,6 @@ local function sessions_picker()
       list = { keys = { ["<C-x>"] = "delete_sessions" } },
     },
   })
-end
-
--- <leader>av shows the chat in the current window instead of a split. CodeCompanion's own
--- "buffer" layout hides it with `:buffer #` in whichever window has focus, and closing a chat
--- deletes its buffer, which closes the window showing it. So track the window the chat
--- borrowed, and hand that window its previous buffer back ourselves.
-local function give_back(win)
-  local prev = vim.w[win].codecompanion_prev_buf
-  vim.w[win].codecompanion_prev_buf = nil
-  if prev and vim.api.nvim_buf_is_valid(prev) then
-    vim.api.nvim_win_set_buf(win, prev)
-  else
-    vim.api.nvim_win_call(win, vim.cmd.enew)
-  end
 end
 
 -- Hide the chat if it's visible (returns true), wherever it is and whichever window has focus.
@@ -365,6 +497,20 @@ return {
       callback = function(ev)
         for _, win in ipairs(vim.fn.win_findbuf(ev.data.bufnr)) do
           if vim.w[win].codecompanion_prev_buf then
+            give_back(win)
+          end
+        end
+      end,
+    })
+    -- Sessions don't keep chat buffers, so a window the chat borrowed would be saved
+    -- without it, losing the window and the file under the chat. Before persistence.nvim
+    -- saves on quit, give those windows their buffer back.
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "PersistenceSavePre",
+      callback = function()
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          if vim.w[win].codecompanion_prev_buf and vim.bo[buf].filetype == "codecompanion" then
             give_back(win)
           end
         end
@@ -437,13 +583,25 @@ return {
     {
       "<leader>an",
       function()
-        -- Close the chat (stopping its Claude process; the session stays resumable) and
-        -- start a fresh one.
+        -- Start a fresh chat in the old one's place (a new split when it's hidden), then
+        -- close the old one, stopping its Claude process; the session stays resumable.
         local chat = require("codecompanion").last_chat()
+        if busy(chat) then
+          return
+        end
+        local place = placement(chat)
+        local new = require("codecompanion").chat({ hidden = true })
+        if not new then
+          return
+        end
+        if place then
+          present(new, place)
+        else
+          new.ui:open()
+        end
         if chat then
           chat:close()
         end
-        require("codecompanion").chat()
       end,
       desc = "New chat",
     },
