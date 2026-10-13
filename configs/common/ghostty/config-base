@@ -8,7 +8,7 @@ cursor-style-blink = true
 
 # ---- Font ----
 font-family = "JetBrainsMonoNL Nerd Font Mono"
-font-size = 11
+font-size = 13
 
 # ---- Theme ----
 theme = "TokyoNight Storm"
