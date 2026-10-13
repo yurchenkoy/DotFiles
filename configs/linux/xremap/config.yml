@@ -115,6 +115,19 @@ keymap:
       Super-Shift-BTN_LEFT: Ctrl-Shift-BTN_LEFT
       # (Super+H/L and Super+1..9 are in hyprland.lua — see note above)
 
+  # ── 2a. Ghostty splits (Mac Ghostty parity) ────────────────────────────
+  #   Ghostty-only: the targets are Ghostty chords (ctrl+shift+w is rebound to
+  #   close_surface in linux/ghostty/config-os). Rewriting Super+W here also keeps
+  #   it from reaching Hyprland's SUPER+W window.close, which would kill all splits.
+  - name: "Ghostty splits (Cmd → Ghostty chord)"
+    exact_match: true
+    application:
+      only: [/ghostty/]
+    remap:
+      Super-d: Ctrl-Shift-o            # split right (new_split:right)
+      Super-s: Ctrl-Shift-e            # split down  (macOS custom super+s)
+      Super-w: Ctrl-Shift-w            # close split; last split closes the window
+
   # ── 2b. Terminal copy/paste/reload (Ghostty etc.) ──────────────────────
   #   Terminals are EXCLUDED from the GUI Super→Ctrl rule above so Ctrl+C stays
   #   SIGINT. But Cmd+C/V/Shift+R still need to work — so here we map them to the

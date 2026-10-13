@@ -2,3 +2,4 @@
 command = /usr/bin/zsh
 clipboard-read = allow
 keybind = ctrl+shift+r=reload_config
+keybind = ctrl+shift+w=close_surface
