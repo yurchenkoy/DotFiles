@@ -539,6 +539,11 @@ return {
         end,
       },
     },
+    -- Claude Code already loads CLAUDE.md and friends itself; CodeCompanion's rules would
+    -- send them a second time and list them as "> Context:" under every prompt.
+    rules = {
+      opts = { chat = { enabled = false } },
+    },
     display = {
       chat = {
         -- Width 0 skips CodeCompanion's resize, so 'equalalways' gives every window
