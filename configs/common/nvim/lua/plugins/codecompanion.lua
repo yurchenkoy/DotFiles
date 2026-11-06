@@ -228,6 +228,46 @@ local function oneline(text)
   return vim.trim((text:gsub("%s+", " ")))
 end
 
+-- A float to write a prompt in, starting with text. It takes the place given by geometry
+-- (a float's window config) with a border, so it can replace a picker without moving.
+-- <C-s> sends it to on_submit; q, or closing it any other way, cancels. Blank cancels too.
+local function edit_prompt(geometry, title, text, on_submit)
+  local lines = vim.split(text, "\n")
+  Snacks.win({
+    relative = "editor",
+    row = geometry.row,
+    col = geometry.col,
+    width = geometry.width,
+    height = geometry.height,
+    border = true,
+    backdrop = false,
+    title = title,
+    footer = " <C-s> send · q cancel ",
+    text = lines,
+    scratch_ft = "markdown",
+    wo = { wrap = true, linebreak = true },
+    on_win = function(win)
+      vim.api.nvim_win_set_cursor(win.win, { #lines, #lines[#lines] })
+    end,
+    keys = {
+      submit = {
+        "<C-s>",
+        function(win)
+          local input = table.concat(vim.api.nvim_buf_get_lines(win.buf, 0, -1, false), "\n")
+          vim.cmd.stopinsert()
+          win:close()
+          if vim.trim(input) == "" then
+            return vim.notify("Empty prompt, cancelled", vim.log.levels.INFO)
+          end
+          on_submit(input)
+        end,
+        mode = { "n", "i" },
+        desc = "Send",
+      },
+    },
+  })
+end
+
 -- Fork or rewind: pick an earlier prompt, write a new one, and continue from just before
 -- the picked prompt in a forked session. A rewind then deletes the original session, a
 -- fork keeps it. claude-agent-acp can't do this yet, so it runs `claude -p` with the
@@ -264,67 +304,81 @@ local function branch(opts)
     return vim.notify("Nothing to go back to; quit the chat to start over", vim.log.levels.WARN)
   end
 
-  vim.ui.select(choices, {
-    prompt = (opts.delete_original and "Rewind" or "Fork") .. " to before",
-    format_item = function(p)
-      return oneline(p.text):sub(1, 100)
-    end,
-  }, function(choice)
-    if not choice then
-      return
+  -- Continue from just before choice with input as the new prompt.
+  local function run(choice, input)
+    local cmd = {
+      "claude",
+      "-p",
+      "--resume",
+      session_id,
+      "--resume-session-at",
+      choice.resume_at,
+      "--fork-session",
+      "--output-format",
+      "json",
+    }
+    if not opts.delete_original then
+      -- A fork inherits the original's title; name it so /resume can tell them apart.
+      vim.list_extend(cmd, { "--name", "↶ " .. vim.fn.strcharpart(oneline(input), 0, 60) })
     end
-    vim.ui.input({ prompt = "New prompt: ", default = oneline(choice.text) }, function(input)
-      if not input or vim.trim(input) == "" then
-        return
-      end
-      local cmd = {
-        "claude",
-        "-p",
-        "--resume",
-        session_id,
-        "--resume-session-at",
-        choice.resume_at,
-        "--fork-session",
-        "--output-format",
-        "json",
-      }
-      if not opts.delete_original then
-        -- A fork inherits the original's title; name it so /resume can tell them apart.
-        vim.list_extend(cmd, { "--name", "↶ " .. vim.fn.strcharpart(oneline(input), 0, 60) })
-      end
 
-      -- Close the old chat now, so nothing new lands in the original while `claude -p`
-      -- runs (a rewind deletes it afterwards). On failure, the original is reopened.
-      chat:close()
-      local function failed(err)
-        vim.notify("Failed: " .. err, vim.log.levels.ERROR)
-        open_session(session_id, { place = place })
-      end
+    -- Close the old chat now, so nothing new lands in the original while `claude -p`
+    -- runs (a rewind deletes it afterwards). On failure, the original is reopened.
+    chat:close()
+    local function failed(err)
+      vim.notify("Failed: " .. err, vim.log.levels.ERROR)
+      open_session(session_id, { place = place })
+    end
 
-      vim.notify((opts.delete_original and "Rewinding" or "Forking") .. ", Claude is answering…")
-      local spawned, spawn_err = pcall(
-        vim.system,
-        cmd,
-        { cwd = cwd, stdin = input, text = true },
-        vim.schedule_wrap(function(res)
-          local ok, out = pcall(vim.json.decode, res.stdout or "")
-          if res.code ~= 0 or not ok or type(out) ~= "table" or not out.session_id then
-            return failed((ok and type(out) == "table" and out.result) or res.stderr or "")
-          end
-          open_session(out.session_id, {
-            place = place,
-            -- Only delete the original once the new session is safely loaded.
-            on_loaded = opts.delete_original and function(conn)
-              delete_sessions(conn, { session_id })
-            end or nil,
-          })
-        end)
-      )
-      if not spawned then
-        failed(tostring(spawn_err))
+    vim.notify((opts.delete_original and "Rewinding" or "Forking") .. ", Claude is answering…")
+    local spawned, spawn_err = pcall(
+      vim.system,
+      cmd,
+      { cwd = cwd, stdin = input, text = true },
+      vim.schedule_wrap(function(res)
+        local ok, out = pcall(vim.json.decode, res.stdout or "")
+        if res.code ~= 0 or not ok or type(out) ~= "table" or not out.session_id then
+          return failed((ok and type(out) == "table" and out.result) or res.stderr or "")
+        end
+        open_session(out.session_id, {
+          place = place,
+          -- Only delete the original once the new session is safely loaded.
+          on_loaded = opts.delete_original and function(conn)
+            delete_sessions(conn, { session_id })
+          end or nil,
+        })
+      end)
+    )
+    if not spawned then
+      failed(tostring(spawn_err))
+    end
+  end
+
+  -- Pick the prompt to go back to (the preview shows it whole), then rewrite it in a float
+  -- that takes the picker's place.
+  local title = opts.delete_original and "Rewind to before" or "Fork from before"
+  local items = {}
+  for _, p in ipairs(choices) do
+    table.insert(items, { text = oneline(p.text), prompt = p, preview = { text = p.text, ft = "markdown" } })
+  end
+  Snacks.picker({
+    title = title,
+    items = items,
+    format = "text",
+    preview = "preview",
+    layout = { preset = "vertical" },
+    win = { preview = { wo = { wrap = true, linebreak = true } } },
+    confirm = function(picker, item)
+      if not item then
+        return picker:close()
       end
-    end)
-  end)
+      local geometry = vim.api.nvim_win_get_config(picker.layout.root.win)
+      picker:close()
+      edit_prompt(geometry, title, item.prompt.text, function(input)
+        run(item.prompt, input)
+      end)
+    end,
+  })
 end
 
 -- Sessions for this folder: <CR> resumes one, <Tab> selects, <C-x> deletes the selection

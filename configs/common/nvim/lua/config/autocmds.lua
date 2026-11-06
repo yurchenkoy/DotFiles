@@ -13,3 +13,13 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.spell = false
   end,
 })
+
+-- No smooth scrolling in markdown or the CodeCompanion chat (which renders as markdown).
+-- render-markdown draws wide table rows as virtual lines, and snacks.scroll's animation
+-- keeps snapping back over them, so <C-d>/<C-u> get stuck.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "codecompanion" },
+  callback = function(ev)
+    vim.b[ev.buf].snacks_scroll = false
+  end,
+})
