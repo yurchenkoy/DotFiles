@@ -16,6 +16,10 @@ return {
         "bicep",
         "hcl",
         "dockerfile",
+        -- ESP-IDF projects: CMakeLists.txt, Kconfig / Kconfig.projbuild, *.ld
+        "cmake",
+        "kconfig",
+        "linkerscript",
       },
       highlight = { enable = true },
     },

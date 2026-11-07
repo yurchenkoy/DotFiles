@@ -1,6 +1,10 @@
+tap "espressif/eim"
 tap "nikitabobko/tap"
 brew "openssl@3"
+brew "cmake"
+brew "dfu-util"
 brew "dotnet"
+brew "espressif/eim/eim"   # ESP-IDF installer (EIM); get_idf in common.zsh
 brew "eza"
 brew "fd"
 brew "fzf"

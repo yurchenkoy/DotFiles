@@ -1,0 +1,14 @@
+# clangd user config (deployed to ~/Library/Preferences/clangd/config.yaml on macOS,
+# ~/.config/clangd/config.yaml on Linux). In this file PathMatch sees the absolute path.
+#
+# ESP-IDF's own sources under ~/.espressif: the same rules a project's .clangd gives
+# its files (Espressif's documented .clangd for ESP-IDF 6.1), since a project's
+# .clangd does not reach files outside the project.
+#   Remove        GCC-only -m/-f flags from the RISC-V compile commands clang rejects
+#   QueryDriver   builtin headers from the GCC named by --query-driver, so the
+#                 6.1 toolchains' standard headers are found
+If:
+  PathMatch: .*/\.espressif/.*
+CompileFlags:
+  Remove: [-m*, -f*]
+  BuiltinHeaders: QueryDriver
