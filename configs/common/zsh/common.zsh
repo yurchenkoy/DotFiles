@@ -38,8 +38,11 @@ activate() {
 }
 
 # venv — manage Python virtualenvs under $WORK_VENVS.
-#   venv -c <name>   create        venv -r <name>   remove (with confirm)
-#   venv -l          list          venv -h          help
+#   venv -c <name> [python]   create        venv -r <name>   remove (with confirm)
+#   venv -l                   list          venv -h          help
+# [python] is the interpreter to build it from (python3.13, /path/to/python3, …).
+# Default python3.11 (Brewfile's python@3.11), else python3 — not plain python3 first:
+# on macOS that is Apple's 3.9 in /usr/bin, ahead of Homebrew on PATH.
 venv() {
   local name="$2"
   # Reject anything that would escape $WORK_VENVS (slashes, ..).
@@ -51,23 +54,28 @@ venv() {
       local d found=0
       for d in "$WORK_VENVS"/*(/N); do        # (/) dirs only, (N) no-match => empty
         [ -f "$d/bin/activate" ] || continue  # only real venvs
-        echo "  ${d:t}"
+        echo "  ${d:t}  ($(sed -n 's/^version[_info]* = //p' "$d/pyvenv.cfg" | head -1))"
         found=1
       done
       [ "$found" -eq 0 ] && echo "  (no environments yet)"
       ;;
 
     -c|--create)
-      [ -z "$name" ] && { echo "Usage: venv -c <env-name>"; return 1; }
+      [ -z "$name" ] && { echo "Usage: venv -c <env-name> [python]"; return 1; }
       case "$name" in */*|..) echo "venv: $_bad_name"; return 1;; esac
       local env_path="$WORK_VENVS/$name"
       if [ -d "$env_path" ]; then
         echo "Environment already exists: $env_path"
         return 1
       fi
+      local py="$3"
+      if [ -z "$py" ]; then
+        (( $+commands[python3.11] )) && py=python3.11 || py=python3
+      fi
+      (( $+commands[$py] )) || [ -x "$py" ] || { echo "venv: no interpreter '$py'"; return 1; }
       mkdir -p "$WORK_VENVS"
-      python3 -m venv "$env_path" || return 1
-      echo "Created $env_path — run: activate $name"
+      "$py" -m venv --upgrade-deps "$env_path" || return 1
+      echo "Created $env_path with $("$env_path/bin/python" --version) — run: activate $name"
       ;;
 
     -r|--remove)
@@ -88,7 +96,8 @@ venv() {
 
     ""|-h|--help)
       print -r -- "Usage: venv <command>
-  -c, --create <name>   create a new virtualenv
+  -c, --create <name> [python]
+                        create a new virtualenv (default python3.11, else python3)
   -r, --remove <name>   delete an existing virtualenv (asks first)
   -l, --list            list environments under \$WORK_VENVS"
       ;;
