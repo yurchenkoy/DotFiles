@@ -1,6 +1,7 @@
 -- ESP-IDF (idf.py, CMake, ESP32 RISC-V) on top of the lang.clangd and dap.core extras.
--- nvim must be started from an activated ESP-IDF shell (get_idf in common.zsh):
--- idf.py, the GCC that clangd queries and riscv32-esp-elf-gdb come from that PATH.
+-- nvim activates ESP-IDF itself when a file of an ESP-IDF project is opened (see
+-- activate()), so it need not be started from a `get_idf` shell; if it was, that
+-- environment is used as is.
 --
 --   clangd       Espressif's esp-clangd from ~/.espressif, with the project's build/
 --                compile database; files inside ESP-IDF reuse the project's client.
@@ -36,11 +37,80 @@ local function idf_root(path)
   end
 end
 
+-- ESP-IDF's environment for nvim and everything it starts (idf.py, OpenOCD, GDB, its
+-- terminals), as `get_idf` would set it in a shell. EIM's activation script prints it
+-- with -e (KEY=value lines; PATH holds only the ESP-IDF dirs) without changing
+-- anything. Not set: VIRTUAL_ENV (the idf.py shim runs the venv's python directly).
+-- Uses the newest install, or vim.g.esp_idf_version (e.g. "v6.1") when set.
+-- One environment per nvim: the first project opened decides it for all.
+local activated ---@type boolean? nil until tried
+---@return boolean
+local function activate()
+  if vim.env.IDF_PATH then
+    return true
+  end
+  if activated ~= nil then
+    return activated
+  end
+  activated = false
+
+  local function version(script)
+    return script:match("activate_idf_(.-)%.sh$") or ""
+  end
+  local scripts = vim.fn.glob(espressif .. "/tools/activate_idf_*.sh", false, true)
+  vim.list_extend(scripts, vim.fn.glob(espressif .. "/activate_idf_*.sh", false, true))
+  local want = vim.g.esp_idf_version
+  if want then
+    scripts = vim.tbl_filter(function(s)
+      return version(s) == want
+    end, scripts)
+  end
+  table.sort(scripts, function(a, b)
+    local va, vb = vim.version.parse(version(a)), vim.version.parse(version(b))
+    if va and vb then
+      return vim.version.gt(va, vb)
+    end
+    return a > b
+  end)
+  local script = scripts[1]
+  if not script then
+    vim.notify(
+      ("ESP-IDF: no activate_idf_%s.sh under %s (install with EIM)"):format(want or "*", espressif),
+      vim.log.levels.WARN
+    )
+    return false
+  end
+
+  local res = vim.system({ "sh", script, "-e" }, { text = true }):wait()
+  local env = {}
+  for line in (res.stdout or ""):gmatch("[^\n]+") do
+    local k, v = line:match("^([%w_]+)=(.*)$")
+    if k then
+      env[k] = v
+    end
+  end
+  if res.code ~= 0 or not env.IDF_PATH or not env.PATH then
+    vim.notify(("ESP-IDF: `sh %s -e` gave no environment"):format(script), vim.log.levels.WARN)
+    return false
+  end
+  env.SYSTEM_PATH = nil -- the PATH EIM saw at install time
+  env.PATH = env.PATH .. ":" .. vim.env.PATH
+  for k, v in pairs(env) do
+    vim.env[k] = v
+  end
+  activated = true
+  vim.notify(("ESP-IDF %s activated"):format(env.IDF_VERSION or version(script)))
+  return true
+end
+
 -- Root for an idf.py key, with the checks every key needs.
 ---@return string?
 local function idf_ready()
-  if not vim.env.IDF_PATH or vim.fn.executable("idf.py") == 0 then
-    vim.notify("ESP-IDF is not active: start nvim from a `get_idf` shell", vim.log.levels.WARN)
+  if not activate() then
+    return
+  end
+  if vim.fn.executable("idf.py") == 0 then
+    vim.notify("ESP-IDF: idf.py not on PATH after activation", vim.log.levels.WARN)
     return
   end
   local root = idf_root()
@@ -172,8 +242,11 @@ local function setup_dap()
       vim.notify("OpenOCD is not listening on :3333; start it with <leader>io", vim.log.levels.WARN)
       return
     end
+    if not activate() then
+      return
+    end
     if vim.fn.executable("riscv32-esp-elf-gdb") == 0 then
-      vim.notify("riscv32-esp-elf-gdb not on PATH: start nvim from a `get_idf` shell", vim.log.levels.WARN)
+      vim.notify("riscv32-esp-elf-gdb not on PATH after ESP-IDF activation", vim.log.levels.WARN)
       return
     end
     cb({
@@ -312,6 +385,20 @@ return {
   -- idf.py keys
   {
     "folke/snacks.nvim",
+    init = function()
+      -- activate on the first file opened from an ESP-IDF project, wherever nvim's cwd
+      -- is, so terminals opened in nvim have idf.py too
+      vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+        group = vim.api.nvim_create_augroup("esp_idf_activate", { clear = true }),
+        callback = function(ev)
+          local name = vim.api.nvim_buf_get_name(ev.buf)
+          if vim.bo[ev.buf].buftype == "" and name ~= "" and idf_root(name) then
+            activate()
+            return true -- once
+          end
+        end,
+      })
+    end,
     -- stylua: ignore
     keys = {
       { "<leader>ib", build, desc = "Build (errors → quickfix)" },

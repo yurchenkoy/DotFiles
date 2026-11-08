@@ -113,13 +113,14 @@ venv() {
 
 # --- ESP-IDF ---
 # get_idf [version-name] — activate an ESP-IDF install made by EIM (default v6.1) in
-# this shell, so idf.py, the RISC-V toolchain and OpenOCD are on PATH. Start nvim from
-# here: the esp-idf.lua keys, clangd and riscv32-esp-elf-gdb's DAP mode all need it.
+# this shell, so idf.py, the RISC-V toolchain and OpenOCD are on PATH. nvim does not
+# need it: esp-idf.lua activates ESP-IDF itself when an ESP-IDF project file is opened.
 # Sources EIM's activation script when it is found; otherwise falls back to
 # `eim shell`, which opens a nested shell (leave it with `exit`).
 get_idf() {
   local name="${1:-v6.1}" script
-  script=( $HOME/.espressif/(tools/|)activate_idf_${name}*.sh(N) )
+  # brace expansion, not a (tools/|) glob group: zsh rejects / inside glob groups
+  script=( $HOME/.espressif/{tools/,}activate_idf_${name}*.sh(N) )
   if (( $#script )); then
     source "$script[1]" && echo "ESP-IDF $name active ($script[1])"
   elif (( $+commands[eim] )); then
