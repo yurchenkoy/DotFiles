@@ -23,3 +23,16 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.b[ev.buf].snacks_scroll = false
   end,
 })
+
+-- Parse treesitter synchronously while the CodeCompanion chat has focus. Neovim 0.12
+-- parses in the background once a parse takes over 3ms, and in the chat that sometimes
+-- draws a frame where some lines lose their markdown_inline highlights: **bold** and
+-- [[links]] flicker between rendered and raw while typing. Other buffers keep async
+-- parsing so large files don't stall keystrokes. (FileType covers a chat that is
+-- entered before its filetype is set.)
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FileType" }, {
+  group = vim.api.nvim_create_augroup("codecompanion_sync_parsing", {}),
+  callback = function()
+    vim.g._ts_force_sync_parsing = vim.bo[vim.api.nvim_get_current_buf()].filetype == "codecompanion" or nil
+  end,
+})
