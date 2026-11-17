@@ -214,6 +214,11 @@ local function openocd()
   end
 end
 
+-- The monitor's own keys are Ctrl-T Ctrl-<letter> (Ctrl-T Ctrl-L log to file, Ctrl-T
+-- Ctrl-H help). LazyVim's Ctrl-H/J/K/L "go to window" keys in split terminals would eat
+-- them, so the monitor's terminal passes them through; leave it with Esc Esc first.
+local monitor_win = { win = { keys = { nav_h = false, nav_j = false, nav_k = false, nav_l = false } } }
+
 ------------------------------------------------------------------------------
 -- GDB (DAP mode) over OpenOCD
 ------------------------------------------------------------------------------
@@ -403,8 +408,8 @@ return {
     keys = {
       { "<leader>ib", build, desc = "Build (errors → quickfix)" },
       { "<leader>if", function() idf("flash", { "flash" }) end, desc = "Flash (resets board)" },
-      { "<leader>im", function() idf("monitor", { "monitor" }) end, desc = "Monitor (Ctrl-] quits)" },
-      { "<leader>iF", function() idf("flash", { "flash", "monitor" }) end, desc = "Flash + Monitor" },
+      { "<leader>im", function() idf("monitor", { "monitor" }, monitor_win) end, desc = "Monitor (Ctrl-] quits)" },
+      { "<leader>iF", function() idf("flash", { "flash", "monitor" }, monitor_win) end, desc = "Flash + Monitor" },
       { "<leader>ic", function() idf("menuconfig", { "menuconfig" }, { win = { position = "float", width = 0.9, height = 0.9 } }) end, desc = "Menuconfig" },
       { "<leader>ir", function() idf("reconfigure", { "reconfigure" }, { interactive = false }) end, desc = "Reconfigure" },
       { "<leader>io", openocd, desc = "OpenOCD (toggle; halts CPU)" },
