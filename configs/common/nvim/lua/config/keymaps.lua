@@ -14,7 +14,7 @@ vim.keymap.set("x", "Y", clipboard("Y"), { expr = true, desc = "Yank lines to cl
 vim.keymap.set({ "n", "x" }, "p", clipboard("p"), { expr = true, desc = "Paste from clipboard" })
 vim.keymap.set({ "n", "x" }, "P", clipboard("P"), { expr = true, desc = "Paste from clipboard" })
 
--- Copy the current file's path to the clipboard: <leader>fy relative to the project root,
+-- Copy the current file's path to the clipboard: <leader>fy relative to its git repo (else cwd),
 -- <leader>fY absolute. In visual mode the selected lines are added: src/foo.lua:12-20
 local function copy_path(absolute)
   return function()
@@ -22,7 +22,9 @@ local function copy_path(absolute)
     if file == "" then
       return vim.notify("Buffer has no file", vim.log.levels.WARN)
     end
-    local path = absolute and file or vim.fs.relpath(LazyVim.root(), file) or vim.fn.fnamemodify(file, ":~")
+    -- the file's git repo, not LazyVim.root(): that prefers LSP roots and dirs with a lua/
+    local root = Snacks.git.get_root(file) or vim.fn.getcwd()
+    local path = absolute and file or vim.fs.relpath(root, file) or vim.fn.fnamemodify(file, ":~")
     if vim.fn.mode():match("^[vV\22]") then
       local first, last = vim.fn.line("v"), vim.fn.line(".")
       if first > last then
@@ -35,7 +37,7 @@ local function copy_path(absolute)
     vim.notify("Copied " .. path)
   end
 end
-vim.keymap.set({ "n", "x" }, "<leader>fy", copy_path(false), { desc = "Copy Path (Root Dir)" })
+vim.keymap.set({ "n", "x" }, "<leader>fy", copy_path(false), { desc = "Copy Path (Git Root)" })
 vim.keymap.set({ "n", "x" }, "<leader>fY", copy_path(true), { desc = "Copy Path (Absolute)" })
 
 -- Git pickers for the repo of the file being edited. Neovim's cwd may be a folder holding
